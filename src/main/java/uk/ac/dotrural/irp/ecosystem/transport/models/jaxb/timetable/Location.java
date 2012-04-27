@@ -8,7 +8,7 @@ public class Location
 {
   private String time;
   private double easting;
-  private double westing;
+  private double northing;
   private double longitude;
   private double latitude;
   
@@ -34,15 +34,15 @@ public class Location
     this.easting = easting;
   }
   
-  @XmlElement(name="westing")
-  public double getWesting()
+  @XmlElement(name="northing")
+  public double getNorthing()
   {
-    return westing;
+    return northing;
   }
   
-  public void setWesting(double westing)
+  public void setNorthing(double northing)
   {
-    this.westing = westing;
+    this.northing = northing;
   }
   
   @XmlElement(name="longitude")

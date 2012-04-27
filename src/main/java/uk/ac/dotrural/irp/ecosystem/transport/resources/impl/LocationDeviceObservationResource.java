@@ -1,6 +1,7 @@
 package uk.ac.dotrural.irp.ecosystem.transport.resources.impl;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -36,6 +38,8 @@ import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.L
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationDeviceObservationPayload;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationDeviceObservationValue;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationDeviceValues;
+import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.BusLocations;
+import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.Location;
 import uk.ac.dotrural.irp.ecosystem.transport.queries.observation.ObservationQueries;
 import uk.ac.dotrural.irp.ecosystem.transport.queries.observation.QueryReader;
 
@@ -161,8 +165,9 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 									.trim(),
 							values.getLatitude().doubleValue(), values
 									.getLongitude().doubleValue(), values
-									.getGpsTime().longValue(), values.getDeviceTime().longValue(),
-							values.getAccuracy(), values.getHeading(), values
+									.getGpsTime().longValue(), values
+									.getDeviceTime().longValue(), values
+									.getAccuracy(), values.getHeading(), values
 									.getSpeed(), observationUri, outputUri,
 							valueUri, serverTime, deviceSensorUri,
 							sensingMethodUsedUri);
@@ -338,4 +343,67 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 				new Query(obsQuery));
 	}
 
+	@GET
+	@Consumes({ MediaType.APPLICATION_JSON })
+	@Path("getBusLocationsOn{Line}")
+	public BusLocations getBusLocationsOn(@PathParam("Line") String line,
+			@DefaultValue("") @QueryParam("lineUri") String lineUri,
+			@DefaultValue("") @QueryParam("direction") String direction) {
+
+		if ("".equals(lineUri.trim())) {
+			throw new ExceptionReporter(new NullPointerException(
+					"'lineUri' is null or empty"));
+		}
+		if ("".equals(direction.trim())) {
+			throw new ExceptionReporter(new IllegalArgumentException(
+					"'direction' is null or an empty "));
+		}
+
+		long now = System.currentTimeMillis();
+		// get all the users on that line that have contributed a location in
+		// the last 5 minutes
+		String usersQuery = ObservationQueries.getUsersSubmittedInLast(lineUri,
+				direction, now, 300000L);
+
+		// for each user, get their latest location
+		Query usersSparqlQuery = new Query(usersQuery);
+		ResultSet usersSet = observationEndpoint.query(usersSparqlQuery);
+		List<String> usersVars = usersSet.getResultVars();
+
+		// somewhere to store the bus locations
+		List<Location> busLocations = new ArrayList<Location>();
+
+		while (usersSet.hasNext()) {
+			QuerySolution solution = usersSet.next();
+			String userUri = Util.getNodeValue(solution.get(usersVars.get(0)));
+
+			// get the latest location from that user
+			String locationQuery = ObservationQueries
+					.getLatestLocationFromUser(userUri, lineUri, direction);
+			Query locationSparqlQuery = new Query(locationQuery);
+			
+			ResultSet busLocationsOnRoute = observationEndpoint.query(locationSparqlQuery);
+			List<String> locationVars = busLocationsOnRoute.getResultVars();
+			while (busLocationsOnRoute.hasNext()) {
+				QuerySolution locationSolution = busLocationsOnRoute.next();
+				
+				Location location = new Location();
+				location.setTime(Util.getNodeValue(locationSolution.get(locationVars.get(0)))
+						.trim());
+				location.setEasting(Double.parseDouble(Util.getNodeValue(
+						locationSolution.get(locationVars.get(1))).trim()));
+				location.setNorthing(Double.parseDouble(Util.getNodeValue(
+						locationSolution.get(locationVars.get(2))).trim()));
+				location.setLongitude(Double.parseDouble(Util.getNodeValue(
+						locationSolution.get(locationVars.get(3))).trim()));
+				location.setLatitude(Double.parseDouble(Util.getNodeValue(
+						locationSolution.get(locationVars.get(4))).trim()));
+				
+				busLocations.add(location);
+			}
+		}
+
+
+		return new BusLocations(busLocations);
+	}
 }

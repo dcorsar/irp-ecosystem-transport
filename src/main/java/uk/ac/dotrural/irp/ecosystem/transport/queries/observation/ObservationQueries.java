@@ -6,11 +6,11 @@ import uk.me.jstott.jcoord.OSRef;
 public class ObservationQueries {
 
 	public static String createLocationDeviceObservationUpdate(
-			String journeyUri, double latitude, double longitude,
-			long gpsTime, long deviceTime, Integer accuracy,
-			Double heading, Double speed, String observationUri,
-			String outputUri, String valueUri, long serverTime,
-			String deviceSensorUri, String deviceLocationSensingUri) {
+			String journeyUri, double latitude, double longitude, long gpsTime,
+			long deviceTime, Integer accuracy, Double heading, Double speed,
+			String observationUri, String outputUri, String valueUri,
+			long serverTime, String deviceSensorUri,
+			String deviceLocationSensingUri) {
 
 		// create all the value triples for each optional property
 		StringBuilder values = new StringBuilder();
@@ -52,13 +52,12 @@ public class ObservationQueries {
 				deviceTime, gpsTime, serverTime);
 		return updateQuery.toString();
 	}
-	
+
 	public static String deleteLocationObservationUpdate(String observationUri) {
 		return String.format(
 				QueryReader.getString("ObservationQueries.update.delete"),
 				observationUri, observationUri);
 	}
-	
 
 	public static String getLocationDeviceObservationQuery(String observationUri) {
 		return String
@@ -80,7 +79,8 @@ public class ObservationQueries {
 		return String
 				.format(QueryReader
 						.getString("ObservationQueries.locationDevice.query.get.observationValue"),
-						observationValueUri, observationValueUri, observationValueUri, observationValueUri);
+						observationValueUri, observationValueUri,
+						observationValueUri, observationValueUri);
 	}
 
 	public static String getLocationDeviceObservationValueForObservationQuery(
@@ -91,36 +91,64 @@ public class ObservationQueries {
 						observationUri);
 	}
 
-
-
-
 	public static Object getLocationDeviceObservationType() {
 		return QueryReader
 				.getString("ObservationQueries.type.locationDeviceObservation");
 	}
 
 	public static String deleteLocationDeviceObservation(String observationUri) {
-		return String.format(QueryReader.getString("ObservationQueries.locationDevice.update.delete.observation"), observationUri, observationUri);
+		return String
+				.format(QueryReader
+						.getString("ObservationQueries.locationDevice.update.delete.observation"),
+						observationUri, observationUri);
 
 	}
 
 	public static String deleteLocationDeviceObservationSensingMethodUsed(
 			String observationUri) {
-		return String.format(QueryReader.getString("ObservationQueries.locationDevice.update.delete.observation.sensingMethodUsed"), observationUri, observationUri);
+		return String
+				.format(QueryReader
+						.getString("ObservationQueries.locationDevice.update.delete.observation.sensingMethodUsed"),
+						observationUri, observationUri);
 	}
 
 	public static String deleteLocationDeviceObservationSpeed(
 			String observationUri) {
-		return String.format(QueryReader.getString("ObservationQueries.locationDevice.update.delete.observation.speed"), observationUri);
+		return String
+				.format(QueryReader
+						.getString("ObservationQueries.locationDevice.update.delete.observation.speed"),
+						observationUri);
 	}
 
 	public static String deleteLocationDeviceObservationHeading(
 			String observationUri) {
-		return String.format(QueryReader.getString("ObservationQueries.locationDevice.update.delete.observation.heading"), observationUri);
+		return String
+				.format(QueryReader
+						.getString("ObservationQueries.locationDevice.update.delete.observation.heading"),
+						observationUri);
 	}
 
 	public static String deleteLocationDeviceObservationAccuracy(
 			String observationUri) {
-		return String.format(QueryReader.getString("ObservationQueries.locationDevice.update.delete.observation.accuracy"), observationUri);
+		return String
+				.format(QueryReader
+						.getString("ObservationQueries.locationDevice.update.delete.observation.accuracy"),
+						observationUri);
+	}
+
+	public static String getUsersSubmittedInLast(String lineUri,
+			String direction, long currentTime, long offset) {
+		return String
+				.format(QueryReader
+						.getString("ObservationQueries.locationDevice.get.line.usersInLast"),
+						lineUri, direction, currentTime, offset);
+	}
+
+	public static String getLatestLocationFromUser(String userUri,
+			String lineUri, String direction) {
+		return String
+				.format(QueryReader
+						.getString("ObservationQueries.locationDevice.get.line.userLatest"),
+						lineUri, direction, userUri);
 	}
 }

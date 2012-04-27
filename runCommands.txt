@@ -1,0 +1,26 @@
+./fuseki-server --update --port=8086 --loc=/Users/david/Programming/irp_data/resources/timetable /timetable
+./post /post "{\"uri\":\"http://localhost:8086/timetable\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/timetable/init
+
+./fuseki-server --update --port=8087 --loc=/Users/david/temp/irp/ecosystem/data/journey /journey
+./post /post "{\"uri\":\"http://localhost:8087/journey\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/journey/init
+
+./fuseki-server --update --port=8088 --loc=/Users/david/temp/irp/ecosystem/data/users /users
+./post /post "{\"uri\":\"http://localhost:8088/users\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/user/init
+
+./fuseki-server --update --port=8089 --loc=/Users/david/temp/irp/ecosystem/data/observations /observations
+./post /post "{\"uri\":\"http://localhost:8089/observations\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/observation/init
+
+
+./post "{\"uri\":\"http://services.data.gov.uk/transport/sparql\"}" http://localhost:8080/ecosystem/transport/init
+
+
+./fuseki-server --update --port=8086 --loc=/Users/david/Programming/irp_data/resources/timetable /timetable
+./post "{\"uri\":\"http://localhost:8086/timetable\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/timetable/init
+
+./fuseki-server --update --port=8087 --loc=/Users/david/temp/irp/ecosystem/data/all /all
+./post  "{\"uri\":\"http://localhost:8087/all\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/journey/init
+
+./post  "{\"uri\":\"http://localhost:8087/all\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/user/init
+
+./post  "{\"uri\":\"http://localhost:8087/all\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/observation/init
+
