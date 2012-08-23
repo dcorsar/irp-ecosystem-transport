@@ -6,13 +6,25 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class Location
 {
+  private String uri;
   private String time;
   private double easting;
   private double northing;
   private double longitude;
   private double latitude;
   
-  @XmlElement(name="time")
+  
+
+  @XmlElement(name="uri")
+  public String getUri() {
+	return uri;
+}
+
+public void setUri(String uri) {
+	this.uri = uri;
+}
+
+@XmlElement(name="time")
   public String getTime()
   {
     return time;

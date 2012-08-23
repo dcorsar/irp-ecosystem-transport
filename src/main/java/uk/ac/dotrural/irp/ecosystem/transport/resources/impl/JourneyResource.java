@@ -26,15 +26,17 @@ import uk.ac.dotrural.irp.ecosystem.core.resources.RESTFulSPARQL;
 import uk.ac.dotrural.irp.ecosystem.core.resources.support.reporters.ExceptionReporter;
 import uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint;
 import uk.ac.dotrural.irp.ecosystem.core.util.Util;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.Property;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.Sensing;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.Sensor;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.device.Device;
-import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.device.Sensor;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.device.Sensors;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.journey.Journey;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.journey.JourneyPayload;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.Line;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.user.User;
+import uk.ac.dotrural.irp.ecosystem.transport.queries.device.DeviceQueries;
 import uk.ac.dotrural.irp.ecosystem.transport.queries.journey.BusJourneyQueries;
-import uk.ac.dotrural.irp.ecosystem.transport.queries.journey.DeviceQueries;
 import uk.ac.dotrural.irp.ecosystem.transport.queries.journey.QueryReader;
 
 import com.hp.hpl.jena.query.QuerySolution;
@@ -115,32 +117,37 @@ public class JourneyResource implements RESTFulSPARQL {
 		List<Query> queries = null;
 		if (journeyPayload.getDevice().getUri() == null) {
 			queries = new ArrayList<Query>();
-			String phoneUri = QueryReader.getString("JourneyQueries.baseNS")
+			String phoneUri = DeviceQueries.getBaseNS()
 					+ UUID.randomUUID().toString();
-			String locationDeviceUri = QueryReader
-					.getString("JourneyQueries.baseNS")
+			String locationDeviceUri = DeviceQueries.getBaseNS()
 					+ UUID.randomUUID().toString();
-			List<String> sensingMethod = new ArrayList<String>();
+			List<Sensing> sensingMethod = new ArrayList<Sensing>();
 			if ("android".equals(journeyPayload.getDevice().getType())) {
 				queries.add(new Query(DeviceQueries.getCreateAndroidPhone(
 						phoneUri, locationDeviceUri, journeyPayload.getDevice()
 								.getOperatingSystemVersion(), journeyPayload
 								.getDevice().getUniqueId())));
-				sensingMethod.add( QueryReader.getString("DeviceQueries.androidNetworkLocationSensing"));
-				sensingMethod.add( QueryReader.getString("DeviceQueries.androidPassiveLocationSensing"));
-				sensingMethod.add( QueryReader.getString("DeviceQueries.androidGPSLocationSensinghttp"));
+				sensingMethod.add(new Sensing(DeviceQueries
+						.getAndroidNetworkLocationSensing()));
+				sensingMethod.add(new Sensing(DeviceQueries
+						.getAndroidPassiveLocationSensing()));
+				sensingMethod.add(new Sensing(DeviceQueries
+						.getAndroidGPSLocationSensing()));
 			} else if ("iPhone".equals(journeyPayload.getDevice().getType())) {
 				queries.add(new Query(DeviceQueries.getCreateiPhone(phoneUri,
 						locationDeviceUri, journeyPayload.getDevice()
 								.getOperatingSystemVersion(), journeyPayload
 								.getDevice().getUniqueId())));
-				sensingMethod .add(QueryReader.getString("DeviceQueries.iOSLocationSensing"));
+				sensingMethod.add(new Sensing(DeviceQueries
+						.getiOSLocationSensing()));
 			}
 			// TODO add iPad and unknown devices
 			Sensor locationSensor = new Sensor();
 			locationSensor.setUri(locationDeviceUri);
-			locationSensor.setObserves("http://www.dotrural.ac.uk/irp/uploads/ontologies/sensors/location");
-			locationSensor.setSensingMethod(sensingMethod);
+			locationSensor
+					.setObserves(new Property(
+							"http://www.dotrural.ac.uk/irp/uploads/ontologies/sensors/location"));
+			locationSensor.setImplements(sensingMethod);
 			journeyPayload.getDevice().setUri(phoneUri);
 			List<Sensor> sensorList = new ArrayList<Sensor>();
 			sensorList.add(locationSensor);

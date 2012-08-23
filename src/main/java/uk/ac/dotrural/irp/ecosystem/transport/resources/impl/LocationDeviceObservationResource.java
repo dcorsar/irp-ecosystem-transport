@@ -28,16 +28,19 @@ import uk.ac.dotrural.irp.ecosystem.core.resources.RESTFulSPARQL;
 import uk.ac.dotrural.irp.ecosystem.core.resources.support.reporters.ExceptionReporter;
 import uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint;
 import uk.ac.dotrural.irp.ecosystem.core.util.Util;
-import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.FeatureOfInterest;
-import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.Observation;
-import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.ObservationValue;
-import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.Sensing;
-import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.Sensor;
-import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.SensorOutput;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.FeatureOfInterest;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.Observation;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.ObservationValue;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.Sensing;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.Sensor;
+import uk.ac.dotrural.irp.ecosystem.sensor.model.SensorOutput;
+import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.UserLocationDeviceObservationPayload;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationDeviceObservation;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationDeviceObservationPayload;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationDeviceObservationValue;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationDeviceValues;
+import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationObservation;
+import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location.LocationObservationPayload;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.BusLocations;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.Location;
 import uk.ac.dotrural.irp.ecosystem.transport.queries.observation.ObservationQueries;
@@ -81,27 +84,35 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Path("create")
-	public LocationDeviceObservation create(
-			LocationDeviceObservationPayload locationObservationPayload) {
-		if (locationObservationPayload == null) {
+	public LocationDeviceObservation create(UserLocationDeviceObservationPayload payload){
+//			@QueryParam("userUri") String userUri, @QueryParam("authenticationToken") String authenticationToken,
+//			@QueryParam("locationObservation") LocationDeviceObservationPayload locationObservationPayload) {
+		if (payload == null) {
 			throw new ExceptionReporter(new NullPointerException(
-					"No LocationObservationPayload given"));
+					"No payload given"));
+		}
+		
+		if (payload.getUserUri() == null
+				|| "".equals(payload.getUserUri())) {
+			throw new ExceptionReporter(new NullPointerException(
+					"User uri required in payload to create the location observation"));
 		}
 
-		if (locationObservationPayload.getUserUri() == null
-				|| "".equals(locationObservationPayload.getUserUri().trim())) {
+		LocationDeviceObservationPayload locationObservationPayload = payload.getPayload();
+		
+		if (locationObservationPayload == null){
 			throw new ExceptionReporter(new NullPointerException(
-					"User uri required to create the location observation"));
+					"Payload required in payload to create the location observation"));
 		}
-
+		
 		if (locationObservationPayload.getType() == null
 				|| "".equals(locationObservationPayload.getType().trim())) {
 			throw new ExceptionReporter(new NullPointerException(
 					"Type required to create the location observation"));
 		}
 
-		if (locationObservationPayload.getSensor() == null
-				|| "".equals(locationObservationPayload.getSensor().trim())) {
+		if (locationObservationPayload.getObservedBy() == null
+				|| "".equals(locationObservationPayload.getObservedBy().trim())) {
 			throw new ExceptionReporter(new NullPointerException(
 					"Sensor required to create the location observation"));
 		}
@@ -144,7 +155,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 								"Device time required to create the location observation"));
 			}
 
-			// bulid query
+			// build query
 			String observationUri = QueryReader
 					.getString("ObservationQueries.baseNs") + UUID.randomUUID();
 			String outputUri = QueryReader
@@ -201,7 +212,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 		String query = ObservationQueries
 				.getLocationDeviceObservationQuery(observationUri);
 		ResultSet results = observationEndpoint.query(new Query(query));
-		Observation obs = new Observation();
+		LocationObservation obs = new LocationObservation();
 		obs.setUri(observationUri);
 		List<String> vars = results.getResultVars();
 		// ?observationResult ?foi ?observedBy ?sensingMethodUsed
@@ -344,7 +355,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 	}
 
 	@GET
-	@Consumes({ MediaType.APPLICATION_JSON })
+	@Produces({ MediaType.APPLICATION_JSON })
 	@Path("getBusLocationsOn{Line}")
 	public BusLocations getBusLocationsOn(@PathParam("Line") String line,
 			@DefaultValue("") @QueryParam("lineUri") String lineUri,
@@ -381,15 +392,16 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 			String locationQuery = ObservationQueries
 					.getLatestLocationFromUser(userUri, lineUri, direction);
 			Query locationSparqlQuery = new Query(locationQuery);
-			
-			ResultSet busLocationsOnRoute = observationEndpoint.query(locationSparqlQuery);
+
+			ResultSet busLocationsOnRoute = observationEndpoint
+					.query(locationSparqlQuery);
 			List<String> locationVars = busLocationsOnRoute.getResultVars();
 			while (busLocationsOnRoute.hasNext()) {
 				QuerySolution locationSolution = busLocationsOnRoute.next();
-				
+
 				Location location = new Location();
-				location.setTime(Util.getNodeValue(locationSolution.get(locationVars.get(0)))
-						.trim());
+				location.setTime(Util.getNodeValue(
+						locationSolution.get(locationVars.get(0))).trim());
 				location.setEasting(Double.parseDouble(Util.getNodeValue(
 						locationSolution.get(locationVars.get(1))).trim()));
 				location.setNorthing(Double.parseDouble(Util.getNodeValue(
@@ -398,11 +410,12 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 						locationSolution.get(locationVars.get(3))).trim()));
 				location.setLatitude(Double.parseDouble(Util.getNodeValue(
 						locationSolution.get(locationVars.get(4))).trim()));
-				
+				location.setUri(Util.getNodeValue(locationSolution
+						.get(locationVars.get(5))).trim());
+
 				busLocations.add(location);
 			}
 		}
-
 
 		return new BusLocations(busLocations);
 	}

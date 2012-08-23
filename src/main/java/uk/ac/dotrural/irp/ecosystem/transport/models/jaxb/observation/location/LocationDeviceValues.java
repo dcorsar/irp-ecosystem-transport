@@ -2,7 +2,9 @@ package uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location;
 
 import javax.xml.bind.annotation.XmlElement;
 
-public class LocationDeviceValues {
+import uk.ac.dotrural.irp.ecosystem.sensor.model.ObservationValue;
+
+public class LocationDeviceValues extends ObservationValue{
 
 	private Long  gpsTime, deviceTime;
 	private Integer accuracy;

@@ -3,8 +3,7 @@ package uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.ObservationValue;
-
+import uk.ac.dotrural.irp.ecosystem.sensor.model.ObservationValue;
 
 @XmlRootElement
 public class LocationObservationValue extends ObservationValue{

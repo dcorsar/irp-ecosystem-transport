@@ -96,7 +96,7 @@ public class UserResource implements RESTFulSPARQL {
 					+ UUID.randomUUID().toString();
 			query = UserQueries.getCreateUserUpdate(userUrl.trim(), userDetails
 					.getNickname().trim(), userDetails.getEmail().trim(),
-					userDetails.getPassword().trim());
+					Util.getMD5(userDetails.getPassword().trim()));
 			sparqlQuery = new Query(query);
 			userEndpoint.update(sparqlQuery);
 			System.out.println("created user");
@@ -218,7 +218,7 @@ public class UserResource implements RESTFulSPARQL {
 
 		String query = UserQueries.getUpdateUserUpdate(userDetails.getUserUri()
 				.trim(), userDetails.getNickname().trim(), userDetails
-				.getEmail().trim(), userDetails.getPassword().trim());
+				.getEmail().trim(), Util.getMD5(userDetails.getPassword().trim()));
 		Query sparqlQuery = new Query(query);
 		userEndpoint.update(sparqlQuery);
 	}
@@ -240,7 +240,7 @@ public class UserResource implements RESTFulSPARQL {
 					"No 'password' given."));
 
 		String query = UserQueries.getIsValidLoginCredentialsQuery(email,
-				password);
+				Util.getMD5(password));
 		System.out.println( query);
 		Query sparqlQuery = new Query(query);
 		boolean isValid = userEndpoint.ask(sparqlQuery);
@@ -262,5 +262,4 @@ public class UserResource implements RESTFulSPARQL {
 	private String generateAuthToken(){
 		return UUID.randomUUID().toString();
 	}
-
 }

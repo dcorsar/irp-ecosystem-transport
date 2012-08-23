@@ -11,16 +11,44 @@
 ./post /post "{\"uri\":\"http://localhost:8089/observations\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/observation/init
 
 
-./post "{\"uri\":\"http://services.data.gov.uk/transport/sparql\"}" http://localhost:8080/ecosystem/transport/init
 
 
+// for my machine for purpose of running demo
+
+./post "{\"uri\":\"http://services.data.gov.uk/transport/sparql\"}" http://localhost:8080/ecosystem-transport/transport/init
+// 
 ./fuseki-server --update --port=8086 --loc=/Users/david/Programming/irp_data/resources/timetable /timetable
+
 ./post "{\"uri\":\"http://localhost:8086/timetable\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/timetable/init
 
 ./fuseki-server --update --port=8087 --loc=/Users/david/temp/irp/ecosystem/data/all /all
+
 ./post  "{\"uri\":\"http://localhost:8087/all\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/journey/init
 
 ./post  "{\"uri\":\"http://localhost:8087/all\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/user/init
 
 ./post  "{\"uri\":\"http://localhost:8087/all\",\"sparql_framework\":\"fuseki\"}" http://localhost:8080/ecosystem-transport/observation/init
 
+
+
+// for the server
+// start fuseki
+ ./start-fs.sh /root/fuseki/Fuseki-0.2.0/ fuseki.instances 
+
+// transport
+./post "{\"uri\":\"http://services.data.gov.uk/transport/sparql\"}" http://dtp-24.sncs.abdn.ac.uk:8080/ecosystem-transport/transport/init
+
+// timetable
+./post "{\"uri\":\"http://dtp-24.sncs.abdn.ac.uk:8094/timetable\",\"sparql_framework\":\"fuseki\"}" http://dtp-24.sncs.abdn.ac.uk:8080/ecosystem-transport/timetable/init
+
+// journeys/observations
+./post  "{\"uri\":\"http://dtp-24.sncs.abdn.ac.uk:8093/journeys\",\"sparql_framework\":\"fuseki\"}" http://dtp-24.sncs.abdn.ac.uk:8080/ecosystem-transport/journey/init
+./post  "{\"uri\":\"http://dtp-24.sncs.abdn.ac.uk:8093/journeys\",\"sparql_framework\":\"fuseki\"}" http://dtp-24.sncs.abdn.ac.uk:8080/ecosystem-transport/observation/init
+
+// users, feedback, alerts
+./post  "{\"uri\":\"http://dtp-24.sncs.abdn.ac.uk:8091/users\",\"sparql_framework\":\"fuseki\"}" http://dtp-24.sncs.abdn.ac.uk:8080/ecosystem-transport/user/init
+
+
+// roads and nodes point
+./fuseki-server --port=8090 --loc=/Users/david/Programming/irp_data/resources/RoadsConversionTest/  --update /roads
+ ./fuseki-server --port=8091 --loc=/Users/david/Programming/irp_data/resources/NodesConversionTest/  --update /nodes

@@ -11,7 +11,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>uk.ac.dotrural.irp</groupId>
-			<artifactId>ecosystem.core</artifactId>
+			<artifactId>ecosystem-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<type>jar</type>
 			<scope>compile</scope>
@@ -20,6 +20,18 @@
 			<groupId>uk.me.jstott</groupId>
 			<artifactId>jcoord</artifactId>
 			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.ac.dotrural.irp</groupId>
+			<artifactId>ecosystem-sensor</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0-m01</version>
 		</dependency>
 	</dependencies>
 
@@ -54,6 +66,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>ecosystem-transport</finalName>
 	</build>
 
 	<repositories>
