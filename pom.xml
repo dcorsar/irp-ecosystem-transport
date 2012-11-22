@@ -33,6 +33,16 @@
 			<artifactId>javax.ws.rs-api</artifactId>
 			<version>2.0-m01</version>
 		</dependency>
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.48</version>
+		</dependency>
+		<dependency>
+			<groupId>uk.ac.dotrural.irp</groupId>
+			<artifactId>ecosystem.timetable</artifactId>
+			<version>0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<properties>
@@ -91,6 +101,14 @@
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>MVNRepository</id>
+			<name>MVNRepository</name>
+			<url>http://mvnrepository.com/artifact</url>
 		</repository>
 	</repositories>
 

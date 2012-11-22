@@ -8,62 +8,61 @@ import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.Line;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.user.User;
 
 @XmlRootElement
-public class Journey
-{
-  private String uri;
-  private User user;
-  private Line line;
-  private Device device;
-  
-  public Journey()
-  {}
-  
-  public Journey(String uri)
-  {
-    this.uri = uri;
-  }
-  
-  @XmlElement(name="uri")
-  public String getUri()
-  {
-    return uri;
-  }
+public class Journey {
+	private String uri, direction;
+	private User user;
+	private Line line;
+	private Device device;
 
-  public void setUri(String uri)
-  {
-    this.uri = uri;
-  }
+	public Journey() {
+	}
 
-  @XmlElement(name="user")
-  public User getUser()
-  {
-    return user;
-  }
-  
-  public void setUser(User user)
-  {
-    this.user = user;
-  }
-  
-  @XmlElement(name="line")
-  public Line getLine()
-  {
-    return line;
-  }
-  
-  public void setLine(Line line)
-  {
-    this.line = line;
-  }
-  
-  @XmlElement(name="device")
-  public Device getDevice()
-  {
-    return device;
-  }
-  
-  public void setDevice(Device device)
-  {
-    this.device = device;
-  }
+	public Journey(String uri) {
+		this.uri = uri;
+	}
+
+	@XmlElement(name = "uri")
+	public String getUri() {
+		return uri;
+	}
+
+	public void setUri(String uri) {
+		this.uri = uri;
+	}
+
+	@XmlElement(name = "user")
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	@XmlElement(name = "line")
+	public Line getLine() {
+		return line;
+	}
+
+	public void setLine(Line line) {
+		this.line = line;
+	}
+
+	@XmlElement(name = "device")
+	public Device getDevice() {
+		return device;
+	}
+
+	public void setDevice(Device device) {
+		this.device = device;
+	}
+
+	@XmlElement(name = "direction")
+	public String getDirection() {
+		return direction;
+	}
+
+	public void setDirection(String direction) {
+		this.direction = direction;
+	}
 }

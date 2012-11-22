@@ -9,6 +9,7 @@ import uk.ac.dotrural.irp.ecosystem.sensor.model.Observation;
 public class LocationObservation extends Observation {
 
 	private Long serverTime;
+	private String derivedFrom;
 
 	@XmlElement(name = "serverTime")
 	public Long getServerTime() {
@@ -17,5 +18,14 @@ public class LocationObservation extends Observation {
 
 	public void setServerTime(Long serverTime) {
 		this.serverTime = serverTime;
+	}
+
+	@XmlElement(name = "derivedFrom")
+	public String getDerivedFrom(){
+		return this.derivedFrom;
+	}
+	
+	public void setDerivedFrom(String derivedFrom) {
+		this.derivedFrom = derivedFrom;
 	}
 }

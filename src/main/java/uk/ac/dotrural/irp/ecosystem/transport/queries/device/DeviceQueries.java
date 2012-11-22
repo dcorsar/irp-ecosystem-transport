@@ -1,21 +1,19 @@
 package uk.ac.dotrural.irp.ecosystem.transport.queries.device;
 
-import uk.ac.dotrural.irp.ecosystem.transport.queries.journey.QueryReader;
-
 /**
  * 
  * @author david corsar
  * 
  */
 public class DeviceQueries {
-	public static String getCreateAndroidPhone(String phoneUri,
+	public static String getCreateiPhone(String phoneUri,
 			String locationSensingDeviceUri, String osVersion, String deviceId) {
 		return getCreatePhoneString(
 				QueryReader.getString("DeviceQueries.update.create.iPhone"),
 				phoneUri, locationSensingDeviceUri, osVersion, deviceId);
 	}
 
-	public static String getCreateiPhone(String phoneUri,
+	public static String getCreateAndroidPhone(String phoneUri,
 			String locationSensingDeviceUri, String osVersion, String deviceId) {
 		return getCreatePhoneString(
 				QueryReader.getString("DeviceQueries.update.create.android"),
@@ -41,7 +39,7 @@ public class DeviceQueries {
 
 	public static String getAndroidGPSLocationSensing() {
 		return QueryReader
-				.getString("DeviceQueries.androidGPSLocationSensinghttp");
+				.getString("DeviceQueries.androidGPSLocationSensing");
 	}
 
 	public static String getiOSLocationSensing() {

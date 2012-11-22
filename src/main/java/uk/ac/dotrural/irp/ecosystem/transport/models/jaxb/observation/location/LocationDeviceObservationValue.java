@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class LocationDeviceObservationValue extends LocationObservationValue {
-	private Double accuracy, heading, speed;
+	private Double accuracy, heading, speed, distanceMoved;
 
 	public LocationDeviceObservationValue() {
 		super();
@@ -38,4 +38,15 @@ public class LocationDeviceObservationValue extends LocationObservationValue {
 		this.speed = speed;
 	}
 
+	@XmlElement(name = "distanceMoved")
+	public Double getDistanceMoved() {
+		return distanceMoved;
+	}
+
+	public void setDistanceMoved(Double distanceMoved) {
+		this.distanceMoved = distanceMoved;
+	}
+
+	
+	
 }

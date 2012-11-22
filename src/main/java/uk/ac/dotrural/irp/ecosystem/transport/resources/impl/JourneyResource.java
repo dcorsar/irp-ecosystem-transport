@@ -122,7 +122,7 @@ public class JourneyResource implements RESTFulSPARQL {
 			String locationDeviceUri = DeviceQueries.getBaseNS()
 					+ UUID.randomUUID().toString();
 			List<Sensing> sensingMethod = new ArrayList<Sensing>();
-			if ("android".equals(journeyPayload.getDevice().getType())) {
+			if ("Android".equals(journeyPayload.getDevice().getType())) {
 				queries.add(new Query(DeviceQueries.getCreateAndroidPhone(
 						phoneUri, locationDeviceUri, journeyPayload.getDevice()
 								.getOperatingSystemVersion(), journeyPayload
@@ -198,10 +198,12 @@ public class JourneyResource implements RESTFulSPARQL {
 
 			journey.setLine(new Line(Util.getNodeValue(
 					solution.get(vars.get(0))).trim()));
+			journey.setDirection(Util.getNodeValue(
+					solution.get(vars.get(1))).trim());
 			journey.setDevice(new Device(Util.getNodeValue(
-					solution.get(vars.get(1))).trim()));
-			journey.setUser(new User(Util.getNodeValue(
 					solution.get(vars.get(2))).trim()));
+			journey.setUser(new User(Util.getNodeValue(
+					solution.get(vars.get(3))).trim()));
 		}
 
 		return journey;
