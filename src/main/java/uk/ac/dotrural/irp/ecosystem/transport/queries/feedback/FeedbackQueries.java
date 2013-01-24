@@ -28,9 +28,19 @@ public class FeedbackQueries {
 
 	public static String getCreateFeedbackUpdate(String userUri,
 			String journeyUri, String feedback, String feedbackUri) {
-		return String.format(
-				QueryReader.getString("FeedbackQueries.update.create"),
-				feedbackUri, journeyUri, userUri, toXsdString(feedback));
+		return String
+				.format(QueryReader.getString("FeedbackQueries.update.create"),
+						feedbackUri,
+						(journeyUri == null || "".equals(journeyUri)) ? ""
+								: String.format(
+										QueryReader
+												.getString("FeedbackQueries.update.create.onJourney"),
+										journeyUri),
+						(userUri == null || "".equals(userUri) ? ""
+								: String.format(
+										QueryReader
+												.getString("FeedbackQueries.update.create.creator"),
+										userUri)), toXsdString(feedback));
 	}
 
 	public static String getUpdateFeedbackUpdate(String feedbackUri,

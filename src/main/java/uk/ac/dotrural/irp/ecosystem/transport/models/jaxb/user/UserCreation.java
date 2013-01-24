@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class UserCreation {
 
 	private boolean created;
-	private String userUri;
+//	private String userUri;
 	private String reason;
 	
 	public UserCreation(){
@@ -23,14 +23,14 @@ public class UserCreation {
 		this.created = created;
 	}
 
-	@XmlElement(name="userUri")
-	public String getUserUri() {
-		return userUri;
-	}
-
-	public void setUserUri(String userUri) {
-		this.userUri = userUri;
-	}
+//	@XmlElement(name="userUri")
+//	public String getUserUri() {
+//		return userUri;
+//	}
+//
+//	public void setUserUri(String userUri) {
+//		this.userUri = userUri;
+//	}
 
 	@XmlElement(name="reason")
 	public String getReason() {

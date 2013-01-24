@@ -29,6 +29,8 @@ import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.Directions;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.Line;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.Lines;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.Location;
+import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.StopTime;
+import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable.StopTimes;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.transport.BusStop;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.transport.BusStops;
 import uk.ac.dotrural.irp.ecosystem.transport.queries.timetable.TimetableQueries;
@@ -187,7 +189,7 @@ public class TimeTableResource implements RESTFulSPARQL {
 
 		if (lineUri.equals(""))
 			throw new ExceptionReporter(new NullPointerException(line
-					+ " 'uri' is NULL or empty."));
+					+ "line 'uri' is NULL or empty."));
 
 		String query = "";
 		if (line.equals("Route"))
@@ -261,20 +263,111 @@ public class TimeTableResource implements RESTFulSPARQL {
 
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Path("getStopTimesOn{Line}")
+	public StopTimes getStopTimes(@PathParam("Line") String line,
+			@DefaultValue("") @QueryParam("lineUri") String lineUri,
+			@DefaultValue("inbound") @QueryParam("direction") String direction,
+			@DefaultValue("") @QueryParam("stopUri") String stopUri) {
+
+		line = line.trim();
+		lineUri = lineUri.trim();
+		direction = direction.trim();
+		stopUri = stopUri.trim();
+
+		if (lineUri.equals(""))
+			throw new ExceptionReporter(new NullPointerException(line
+					+ "line 'uri' is NULL or empty."));
+		if (stopUri.equals(""))
+			throw new ExceptionReporter(new NullPointerException(line
+					+ "stop 'uri' is NULL or empty."));
+
+		StopTimes stopTimes = new StopTimes();
+		addPreviousTimeAtStop(line, lineUri, direction, stopUri, stopTimes, 1);
+		addNextTimeAtStop(line, lineUri, direction, stopUri, stopTimes, 1);
+
+		return stopTimes;
+	}
+
+	private void addPreviousTimeAtStop(String line, String lineUri,
+			String direction, String stopUri, StopTimes stopTimes, int number) {
+		String query = "";
+		if (line.equals("Route"))
+			query = TimetableQueries.getPreviousBusAtStopOnRoute(lineUri,
+					direction.equals("inbound"), stopUri, number);
+		else
+			query = TimetableQueries.getPreviousBusAtStopOnService(lineUri,
+					direction.equals("inbound"), stopUri, number);
+
+		Query sparqlQuery = new Query(query);
+		ResultSet busLocationsOnRoute = timeTableEndpoint.query(sparqlQuery);
+
+		List<String> vars = busLocationsOnRoute.getResultVars();
+		while (busLocationsOnRoute.hasNext()) {
+			QuerySolution solution = busLocationsOnRoute.next();
+
+			StopTime st = new StopTime();
+			st.setDepartureTime(Util.getNodeValue(solution.get(vars.get(0)))
+					.trim());
+			st.setArrivalTime(Util.getNodeValue(solution.get(vars.get(1)))
+					.trim());
+			stopTimes.addPreviousBus(st);
+
+			stopTimes.setLabel(Util.getNodeValue(solution.get(vars.get(2))));
+		}
+	}
+
+	private void addNextTimeAtStop(String line, String lineUri,
+			String direction, String stopUri, StopTimes stopTimes, int number) {
+		String query = "";
+		if (line.equals("Route"))
+			query = TimetableQueries.getNextBusAtStopOnRoute(lineUri,
+					direction.equals("inbound"), stopUri, number);
+		else
+			query = TimetableQueries.getNextBusAtStopOnService(lineUri,
+					direction.equals("inbound"), stopUri, number);
+
+		Query sparqlQuery = new Query(query);
+		ResultSet busLocationsOnRoute = timeTableEndpoint.query(sparqlQuery);
+
+		List<String> vars = busLocationsOnRoute.getResultVars();
+		while (busLocationsOnRoute.hasNext()) {
+			QuerySolution solution = busLocationsOnRoute.next();
+
+			StopTime st = new StopTime();
+			st.setArrivalTime(Util.getNodeValue(solution.get(vars.get(0)))
+					.trim());
+			st.setDepartureTime(Util.getNodeValue(solution.get(vars.get(1)))
+					.trim());
+			stopTimes.addNextBus(st);
+
+			stopTimes.setLabel(Util.getNodeValue(solution.get(vars.get(2))));
+		}
+	}
+
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON })
 	@Path("getBusStopsOn{Line}")
 	public BusStops getBusStopsOn(@PathParam("Line") String line,
 			@DefaultValue("") @QueryParam("lineUri") String lineUri,
 			@DefaultValue("false") @QueryParam("direction") String direction) {
 
-		String query;
-		if ("service".equals(line.toLowerCase())){
-			query =  TimetableQueries.getBusStopsOnServiceQuery(lineUri, "inbound".equals(direction));
+		String query, kmlQuery;
+		if ("service".equals(line.toLowerCase())) {
+			query = TimetableQueries.getBusStopsOnServiceQuery(lineUri,
+					"inbound".equals(direction));
+			kmlQuery = TimetableQueries.getKmlServiceQuery(lineUri,
+					"inbound".equals(direction));
 		} else if ("route".equals(line.toLowerCase())) {
-			query =  TimetableQueries.getBusStopsOnRouteQuery(lineUri, "inbound".equals(direction));
+			query = TimetableQueries.getBusStopsOnRouteQuery(lineUri,
+					"inbound".equals(direction));
+			kmlQuery = TimetableQueries.getKmlRouteQuery(lineUri,
+					"inbound".equals(direction));
 		} else {
-			throw new ExceptionReporter("Unrecognised line type - should be Service or Route but was " + line);
+			throw new ExceptionReporter(
+					"Unrecognised line type - should be Service or Route but was "
+							+ line);
 		}
-		
+
 		Query sparqlQuery = new Query(query);
 		ResultSet servicesOnRoute = timeTableEndpoint.query(sparqlQuery);
 
@@ -291,6 +384,21 @@ public class TimeTableResource implements RESTFulSPARQL {
 
 			stops.add(stop);
 		}
-		return new BusStops(stops);
+		BusStops busStops = new BusStops(stops);
+		busStops.setKml(getKml(kmlQuery));
+		return busStops;
+	}
+
+	private String getKml(String query){
+		Query sparqlQuery = new Query(query);
+		ResultSet kmlFile = timeTableEndpoint.query(sparqlQuery);
+
+		List<String> vars = kmlFile.getResultVars();
+		String kml ="null";
+		if (kmlFile.hasNext()) {
+			QuerySolution solution = kmlFile.next();
+			kml =Util.getNodeValue(solution.get(vars.get(0))).trim();
+		}
+		return kml;
 	}
 }

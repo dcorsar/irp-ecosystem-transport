@@ -2,7 +2,10 @@ package uk.ac.dotrural.irp.ecosystem.transport.resources.impl;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.naming.NoPermissionException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -25,6 +28,7 @@ import uk.ac.dotrural.irp.ecosystem.core.resources.RESTFulSPARQL;
 import uk.ac.dotrural.irp.ecosystem.core.resources.support.reporters.ExceptionReporter;
 import uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint;
 import uk.ac.dotrural.irp.ecosystem.core.util.Util;
+import uk.ac.dotrural.irp.ecosystem.transport.EmailHandler;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.user.User;
 import uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.user.UserCreation;
 import uk.ac.dotrural.irp.ecosystem.transport.queries.user.QueryReader;
@@ -60,13 +64,12 @@ public class UserResource implements RESTFulSPARQL {
 	public EndpointInfo info() {
 		return userEndpoint.info();
 	}
-	
+
 	@POST
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Path("create")
 	public UserCreation create(User userDetails) {
-		System.out.println("creating user 1");
 		if (userDetails == null)
 			throw new ExceptionReporter(new NullPointerException(
 					"No 'UserDetails' given."));
@@ -86,27 +89,107 @@ public class UserResource implements RESTFulSPARQL {
 			throw new ExceptionReporter(new NullPointerException(
 					"Password needed to create the user."));
 
-		System.out.println("creating users");
-		String userUrl = "";
+		if (!isAnEmail(userDetails.getEmail())) {
+			UserCreation uc = new UserCreation();
+			uc.setCreated(false);
+			uc.setReason("An valid email address was not provided");
+			return uc;
+		}
+
 		UserCreation newUser = new UserCreation();
 		String query = UserQueries.getExistsQuery(userDetails.getEmail());
 		Query sparqlQuery = new Query(query);
 		if (!userEndpoint.ask(sparqlQuery)) {
-			userUrl = QueryReader.getString("UserQueries.baseNS")
+			String userUrl = QueryReader.getString("UserQueries.baseNS")
 					+ UUID.randomUUID().toString();
-			query = UserQueries.getCreateUserUpdate(userUrl.trim(), userDetails
-					.getNickname().trim(), userDetails.getEmail().trim(),
-					Util.getMD5(userDetails.getPassword().trim()));
+			String token = UUID.randomUUID().toString();
+			query = UserQueries.getCreateUnactivatedUserUpdate(userUrl.trim(),
+					userDetails.getNickname().trim(), userDetails.getEmail()
+							.trim(), Util.getMD5(userDetails.getPassword()
+							.trim()), token);
 			sparqlQuery = new Query(query);
 			userEndpoint.update(sparqlQuery);
-			System.out.println("created user");
+			sendAuthenticationEmail(userDetails.getNickname(),
+					userDetails.getEmail(), token);
 			newUser.setCreated(true);
-			newUser.setUserUri(userUrl);
-		} else{
+			newUser.setReason("Thank you for registering, an activiation email has been sent to "
+					+ userDetails.getEmail());
+		} else {
 			newUser.setCreated(false);
-			newUser.setReason("User with email " + userDetails.getEmail() + " already exists");
+			newUser.setReason("A user already exists for that email address");
 		}
 		return newUser;
+	}
+
+	private boolean isAnEmail(String email) {
+		Pattern p = Pattern.compile(".+@.+\\.[a-z]+");
+		Matcher m = p.matcher(email);
+		boolean matchFound = m.matches();
+		return matchFound;
+	}
+
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Path("activate")
+	public UserCreation activateAccount(
+			@DefaultValue("") @QueryParam("token") String token,
+			@DefaultValue("") @QueryParam("email") String email) {
+		if (token == null || token.trim().equals("")) {
+			throw new ExceptionReporter(new NullPointerException(
+					"Token must be provided"));
+		}
+		if (email == null || email.trim().equals("")) {
+			throw new ExceptionReporter(new NoPermissionException(
+					"Email address must be provided"));
+		}
+
+		String query = UserQueries.getCheckActivationDetails(email, token);
+		Query sparqlQuery = new Query(query);
+		UserCreation uc = new UserCreation();
+		if (userEndpoint.ask(sparqlQuery)) {
+			query = UserQueries.getActivateUpdate(email, token);
+			sparqlQuery = new Query(query);
+			userEndpoint.update(sparqlQuery);
+			uc.setCreated(true);
+			uc.setReason("Account successfully validated");
+		} else {
+			uc.setCreated(false);
+			uc.setReason("Unable to activate account or account is already activated.");
+		}
+		return uc;
+	}
+
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Path("resentActivation")
+	public UserCreation resendAuthenticationEmail(
+			@DefaultValue("") @QueryParam("email") String email) {
+		if (email == null || email.trim().equals("")) {
+			throw new ExceptionReporter(new NoPermissionException(
+					"Email address must be provided"));
+		}
+
+		String query = UserQueries.getActiviationDetailsQuery(email);
+		Query sparqlQuery = new Query(query);
+		ResultSet results = userEndpoint.query(sparqlQuery);
+		UserCreation uc = new UserCreation();
+		uc.setCreated(false);
+		if (results.hasNext()) {
+			QuerySolution solution = results.next();
+			sendAuthenticationEmail(
+					Util.getNodeValue(solution.get("nickname")), email,
+					Util.getNodeValue(solution.get("token")));
+			uc.setReason("Activiation email successfully sent");
+		} else {
+			uc.setReason("User does not exist for that email address, or the account has already been activiated");
+		}
+		return uc;
+	}
+
+	private void sendAuthenticationEmail(String nickname, String email,
+			String token) {
+		EmailHandler handler = new EmailHandler();
+		handler.sendActivationEmail(nickname, email, token);
 	}
 
 	@GET
@@ -116,9 +199,9 @@ public class UserResource implements RESTFulSPARQL {
 			@DefaultValue("") @QueryParam("email") String email,
 			@DefaultValue("") @QueryParam("userUri") String userUri,
 			@DefaultValue("") @QueryParam("authenticationToken") String authenticationToken) {
-//		email = email.trim();
-//		userUri = userUri.trim();
-//		authenticationToken = authenticationToken.trim();
+		// email = email.trim();
+		// userUri = userUri.trim();
+		// authenticationToken = authenticationToken.trim();
 
 		if ("".equals(email.trim()) && "".equals(userUri.trim())
 				&& "".equals(authenticationToken.trim()))
@@ -218,7 +301,8 @@ public class UserResource implements RESTFulSPARQL {
 
 		String query = UserQueries.getUpdateUserUpdate(userDetails.getUserUri()
 				.trim(), userDetails.getNickname().trim(), userDetails
-				.getEmail().trim(), Util.getMD5(userDetails.getPassword().trim()));
+				.getEmail().trim(), Util.getMD5(userDetails.getPassword()
+				.trim()));
 		Query sparqlQuery = new Query(query);
 		userEndpoint.update(sparqlQuery);
 	}
@@ -239,9 +323,15 @@ public class UserResource implements RESTFulSPARQL {
 			throw new ExceptionReporter(new NullPointerException(
 					"No 'password' given."));
 
+		if (!isActivitated(email)) {
+			User u = new User(true);
+			u.setMessage("Account has not yet been activated");
+			return u;
+		}
+
 		String query = UserQueries.getIsValidLoginCredentialsQuery(email,
 				Util.getMD5(password));
-		System.out.println( query);
+		System.out.println(query);
 		Query sparqlQuery = new Query(query);
 		boolean isValid = userEndpoint.ask(sparqlQuery);
 
@@ -249,17 +339,24 @@ public class UserResource implements RESTFulSPARQL {
 		if (isValid) {
 			u = getUser(email, "");
 			String token = generateAuthToken();
-			String update = UserQueries.getCreateAuthTokenQuery(u.getUserUri(), token);
+			String update = UserQueries.getCreateAuthTokenQuery(u.getUserUri(),
+					token);
 			userEndpoint.update(new Query(update));
 			u.setAuthenticationToken(token);
 		} else {
 			u = new User(false);
+			u.setMessage("Incorrect email/password combination");
 		}
 
 		return u;
 	}
-	
-	private String generateAuthToken(){
+
+	private boolean isActivitated(String email) {
+		Query query = new Query(UserQueries.getIsActivatedQuery(email));
+		return userEndpoint.ask(query);
+	}
+
+	private String generateAuthToken() {
 		return UUID.randomUUID().toString();
 	}
 }

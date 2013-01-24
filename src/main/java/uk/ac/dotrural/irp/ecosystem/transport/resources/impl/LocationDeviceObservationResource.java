@@ -434,9 +434,9 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 
 		long now = System.currentTimeMillis();
 		// get all the users on that line that have contributed a location in
-		// the last 5 minutes
+		// the last 1 minutes
 		String usersQuery = ObservationQueries.getUsersSubmittedSince(lineUri,
-				direction, now - 300000L);
+				direction, now - 60000L);
 
 		// for each user, get their latest location
 		Query usersSparqlQuery = new Query(usersQuery);

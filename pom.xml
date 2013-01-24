@@ -13,8 +13,6 @@
 			<groupId>uk.ac.dotrural.irp</groupId>
 			<artifactId>ecosystem-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>uk.me.jstott</groupId>
@@ -42,6 +40,11 @@
 			<groupId>uk.ac.dotrural.irp</groupId>
 			<artifactId>ecosystem.timetable</artifactId>
 			<version>0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.6-rc1</version>
 		</dependency>
 	</dependencies>
 

@@ -11,6 +11,7 @@ public class User
   private String email;
   private String password;
   private String authenticationToken;
+  private String message;
   private boolean exists;
   
   public User()
@@ -91,5 +92,15 @@ public class User
   public void setExists(boolean exists)
   {
     this.exists = exists;
+  }
+  @XmlElement(name="message")
+  public String getMessage()
+  {
+	  return message;
+  }
+  
+  public void setMessage(String message)
+  {
+	  this.message = message;
   }
 }

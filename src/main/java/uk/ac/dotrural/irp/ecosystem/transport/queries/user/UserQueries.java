@@ -5,6 +5,8 @@ package uk.ac.dotrural.irp.ecosystem.transport.queries.user;
 
 import java.util.UUID;
 
+import uk.ac.dotrural.irp.ecosystem.core.models.jaxb.system.Query;
+
 /**
  * @author david corsar
  * 
@@ -42,18 +44,18 @@ public class UserQueries {
 				email, encodePassword(password));
 	}
 
-	public static String getCreateUserUpdate(String nickname, String email, String password) {
+	public static String getCreateUnactivatedUserUpdate(String nickname, String email, String password, String activationToken) {
 		String userUrl = QueryReader
 				.getString("UserQueries.query.create.baseNS")
 				+ UUID.randomUUID().toString();
-		return getCreateUserUpdate(userUrl, nickname, email, password);
+		return getCreateUnactivatedUserUpdate(userUrl, nickname, email, password, activationToken);
 	}
 
-	public static String getCreateUserUpdate(String userUri, String nickname, String email,
-			String password) {
+	public static String getCreateUnactivatedUserUpdate(String userUri, String nickname, String email,
+			String password, String activationToken) {
 		return String.format(
 				QueryReader.getString("UserQueries.update.create"), userUri, nickname,
-				email, encodePassword(password));
+				email, encodePassword(password), activationToken);
 	}
 
 	public static String getDeleteUserUpdate(String userUri) {
@@ -69,6 +71,23 @@ public class UserQueries {
 
 	private static String encodePassword(String password) {
 		return password;
+	}
+
+	public static String getActiviationDetailsQuery(String userEmail) {
+		// to do
+		return String.format(QueryReader.getString("UserQueries.query.get.activitationDetails"), userEmail);
+	}
+
+	public static String getActivateUpdate(String email, String token) {
+		return String.format(QueryReader.getString("UserQueries.update.activate"), token, email, token);
+	}
+
+	public static String getCheckActivationDetails(String email, String token) {
+		return String.format(QueryReader.getString("UserQueries.query.checkActiviationDetails"), email, token);
+	}
+
+	public static String getIsActivatedQuery(String email) {
+		return String.format(QueryReader.getString("UserQueries.query.isActivated"), email);
 	}
 
 }

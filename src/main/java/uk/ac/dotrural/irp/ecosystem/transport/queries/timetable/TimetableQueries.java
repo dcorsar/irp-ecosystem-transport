@@ -99,6 +99,76 @@ public class TimetableQueries {
 		return query;
 	}
 
+	public static String getPreviousBusAtStopOnRoute(String routeUri,
+			boolean inbound, String stopUri, int number) {
+		return getPreviousBusAtStop(
+				QueryReader
+						.getString("TimetableQueries.query.get.lines.route.property"),
+				routeUri, inbound, stopUri, number);
+	}
+
+	public static String getPreviousBusAtStopOnService(String serviceUri,
+			boolean inbound, String stopUri, int number) {
+		return getPreviousBusAtStop(
+				QueryReader
+						.getString("TimetableQueries.query.get.lines.service.property"),
+				serviceUri, inbound, stopUri, number);
+	}
+
+	public static String getPreviousBusAtStop(String lineLink, String lineUri,
+			boolean inbound, String stopUri, int number) {
+		Calendar cal = Calendar.getInstance();
+		String dayOfWeek = getDayOfWeekProperty(cal);
+		String time = currentTimeString(cal).toString();
+		String query = String
+				.format(QueryReader
+						.getString("TimetableQueries.query.get.previousBusAtStop"),
+						lineLink,
+						lineUri,
+						((inbound) ? QueryReader
+								.getString("TimetableQueries.query.get.busLocation.inbound")
+								: QueryReader
+										.getString("TimetableQueries.query.get.busLocation.outbound")),
+						dayOfWeek, time, stopUri, stopUri, Integer
+								.toString(number));
+		return query;
+	}
+
+	public static String getNextBusAtStopOnRoute(String routeUri,
+			boolean inbound, String stopUri, int number) {
+		return getNextBusAtStop(
+				QueryReader
+						.getString("TimetableQueries.query.get.lines.route.property"),
+				routeUri, inbound, stopUri, number);
+	}
+
+	public static String getNextBusAtStopOnService(String serviceUri,
+			boolean inbound, String stopUri, int number) {
+		return getNextBusAtStop(
+				QueryReader
+						.getString("TimetableQueries.query.get.lines.service.property"),
+				serviceUri, inbound, stopUri, number);
+	}
+
+	public static String getNextBusAtStop(String lineLink, String lineUri,
+			boolean inbound, String stopUri, int number) {
+		Calendar cal = Calendar.getInstance();
+		String dayOfWeek = getDayOfWeekProperty(cal);
+		String time = currentTimeString(cal).toString();
+		String query = String
+				.format(QueryReader
+						.getString("TimetableQueries.query.get.nextBusAtStop"),
+						lineLink,
+						lineUri,
+						((inbound) ? QueryReader
+								.getString("TimetableQueries.query.get.busLocation.inbound")
+								: QueryReader
+										.getString("TimetableQueries.query.get.busLocation.outbound")),
+						dayOfWeek, time, stopUri, stopUri, Integer
+								.toString(number));
+		return query;
+	}
+
 	private static String getDayOfWeekProperty(Calendar cal) {
 		switch (cal.get(Calendar.DAY_OF_WEEK)) {
 		case Calendar.MONDAY:
@@ -126,20 +196,18 @@ public class TimetableQueries {
 		return "[]";
 	}
 
-	
-	
 	public static String getBusStopsOnServiceQuery(String serviceUri,
 			boolean inbound) {
 		return getBusStopsQuery(
 				QueryReader
-				.getString("TimetableQueries.query.get.lines.service.property"),
+						.getString("TimetableQueries.query.get.lines.service.property"),
 				serviceUri,
 				((inbound) ? QueryReader
 						.getString("TimetableQueries.query.get.busLocation.inbound")
 						: QueryReader
-						.getString("TimetableQueries.query.get.busLocation.outbound")));
+								.getString("TimetableQueries.query.get.busLocation.outbound")));
 	}
-	
+
 	public static String getBusStopsOnRouteQuery(String routeUri,
 			boolean inbound) {
 		return getBusStopsQuery(
@@ -172,5 +240,33 @@ public class TimetableQueries {
 		}
 		time.append(cal.get(Calendar.MINUTE)).append(":00");
 		return time;
+	}
+
+	public static String getKmlRouteQuery(String lineUri, boolean inbound) {
+		return getKmlQuery(QueryReader
+				.getString("TimetableQueries.query.get.lines.route.property"),
+		lineUri,
+		((inbound) ? QueryReader
+				.getString("TimetableQueries.query.get.busLocation.inbound")
+				: QueryReader
+						.getString("TimetableQueries.query.get.busLocation.outbound")));
+	}
+
+	public static String getKmlServiceQuery(String lineUri, boolean inbound) {
+		return getKmlQuery(
+				QueryReader
+						.getString("TimetableQueries.query.get.lines.service.property"),
+				lineUri,
+				((inbound) ? QueryReader
+						.getString("TimetableQueries.query.get.busLocation.inbound")
+						: QueryReader
+								.getString("TimetableQueries.query.get.busLocation.outbound")));
+	}
+
+	private static String getKmlQuery(String lineProperty, String lineUri,
+			String direction) {
+		return String.format(
+				QueryReader.getString("TimetableQueries.query.get.kml"),
+				direction, lineProperty, lineUri);
 	}
 }
