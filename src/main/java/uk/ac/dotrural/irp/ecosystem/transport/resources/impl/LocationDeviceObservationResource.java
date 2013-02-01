@@ -201,9 +201,9 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 			LocationDeviceObservation observation = new LocationDeviceObservation();
 			observation.setUri(observationUri);
 
-			 mapMatchObservation(values.getLongitude().doubleValue(), values
-			 .getLatitude().doubleValue(), locationObservationPayload
-			 .getFeatureOfInterest().trim(), observationUri);
+			mapMatchObservation(values.getLongitude().doubleValue(), values
+					.getLatitude().doubleValue(), locationObservationPayload
+					.getFeatureOfInterest().trim(), observationUri);
 
 			return observation;
 		}
@@ -227,6 +227,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 
 		if (sd != null) {
 
+			System.out.println("map matching performed");
 			String valueUri = QueryReader
 					.getString("ObservationQueries.baseNs") + UUID.randomUUID();
 			String sensorOutputUri = QueryReader
@@ -244,6 +245,8 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 							originalObservationUri);
 
 			observationEndpoint.update(new Query(query));
+		} else {
+			System.out.println("no map matching performed");
 		}
 	}
 
@@ -436,7 +439,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 		// get all the users on that line that have contributed a location in
 		// the last 1 minutes
 		String usersQuery = ObservationQueries.getUsersSubmittedSince(lineUri,
-				direction, now - 60000L);
+				direction, now - 120000L);
 
 		// for each user, get their latest location
 		Query usersSparqlQuery = new Query(usersQuery);
