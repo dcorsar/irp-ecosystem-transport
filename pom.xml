@@ -35,27 +35,27 @@
 			<artifactId>jcoord</artifactId>
 			<version>1.0</version>
 		</dependency>
-                
-            <dependency>
-                <groupId>javax.mail</groupId>
-                <artifactId>mail</artifactId>
-                <version>1.4.6-rc1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.jena</groupId>
-                <artifactId>jena-arq</artifactId>
-                <version>2.10.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>javax</groupId>
-                <artifactId>javaee-web-api</artifactId>
-                <version>6.0</version>
-                <type>jar</type>
-            </dependency>
+
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.6-rc1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-arq</artifactId>
+			<version>2.10.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>javax</groupId>
+			<artifactId>javaee-web-api</artifactId>
+			<version>6.0</version>
+			<type>jar</type>
+		</dependency>
 	</dependencies>
-        <properties>
-            <jetty.version>6.1.18</jetty.version>
-        </properties>
+	<properties>
+		<jetty.version>6.1.18</jetty.version>
+	</properties>
 
 	<scm>
 		<developerConnection>dcorsar</developerConnection>
@@ -63,14 +63,6 @@
 	</scm>
 	<build>
 		<plugins>
-			<plugin>
-		 		<groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                <warName>ecosystem-transport</warName>
-                </configuration>
-            </plugin>
 			<plugin>
 				<groupId>org.mortbay.jetty</groupId>
 				<artifactId>maven-jetty-plugin</artifactId>
@@ -118,22 +110,22 @@
 			</snapshots>
 		</repository>
 		<repository>
-  <id>apache-repo-releases</id>
-  <url>https://repository.apache.org/content/repositories/releases/</url>
-  <releases>
-   <enabled>true</enabled>
-  </releases>
-</repository>
-<repository>
-  <id>apache-repo-snapshots</id>
-  <url>https://repository.apache.org/content/repositories/snapshots/</url>
-<releases>
+			<id>apache-repo-releases</id>
+			<url>https://repository.apache.org/content/repositories/releases/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+		<repository>
+			<id>apache-repo-snapshots</id>
+			<url>https://repository.apache.org/content/repositories/snapshots/</url>
+			<releases>
 				<enabled>false</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-</repository>
+		</repository>
 	</repositories>
 
 	<distributionManagement>
