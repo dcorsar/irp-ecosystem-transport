@@ -60,6 +60,8 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 	@Context
 	private UriInfo uriInfo;
 
+        private String mapNodesEndpoint;
+
 	private SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss z");
 
@@ -71,6 +73,12 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 
 	public SystemMessage init(ServiceInitialiser si) {
 		return observationEndpoint.init(uriInfo, si);
+	}
+
+        @GET
+	@Path("init/mapnodes")
+	public void init(@QueryParam("endpoint") String mapNodesEndpoint) {
+		this.mapNodesEndpoint = mapNodesEndpoint;
 	}
 
 	public void update(Query query) {
@@ -223,7 +231,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 
 		SegmentDistance sd = matcher.mapToRouteFromJourney(point, 500,
 				journeyUri, this.observationEndpoint.getQueryURI(),
-				"http://localhost:8096/mapnodes/query");
+				mapNodesEndpoint);
 
 		if (sd != null) {
 
