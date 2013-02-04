@@ -38,7 +38,17 @@
                 <version>6.0</version>
                 <type>jar</type>
             </dependency>
-        </dependencies>
+            <dependency>
+            	<groupId>uk.ac.dotrural.irp</groupId>
+            	<artifactId>ecosystem-sensor</artifactId>
+            	<version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+            	<groupId>uk.ac.dotrural.irp</groupId>
+            	<artifactId>ecosystem.timetable</artifactId>
+            	<version>0.1-SNAPSHOT</version>
+            </dependency>
+	</dependencies>
         <properties>
             <jetty.version>6.1.18</jetty.version>
         </properties>

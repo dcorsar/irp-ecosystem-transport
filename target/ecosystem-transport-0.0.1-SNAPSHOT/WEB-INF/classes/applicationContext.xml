@@ -1,0 +1,49 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="	http://www.springframework.org/schema/beans 
+							http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+							http://www.springframework.org/schema/context 
+							http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+<bean id="alertEndpoint" class="uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint"/>
+	<bean id="feedbackEndpoint" class="uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint"/>
+	<bean id="journeyEndpoint" class="uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint"/>
+	<bean id="observationEndpoint" class="uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint"/>
+	<bean id="timeTableEndpoint" class="uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint"/>
+	<bean id="naptanEndpoint" class="uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint"/>
+	<bean id="userEndpoint" class="uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint"/>
+	<bean id="deviceEndpoint" class="uk.ac.dotrural.irp.ecosystem.core.services.SPARQLEndpoint"/>
+	
+	<bean id="alert" class="uk.ac.dotrural.irp.ecosystem.transport.resources.impl.AlertResource">
+		<property name="alertEndpoint" ref="alertEndpoint"/>
+	</bean>
+
+	<bean id="feedback" class="uk.ac.dotrural.irp.ecosystem.transport.resources.impl.FeedbackResource">
+		<property name="feedbackEndpoint" ref="feedbackEndpoint"/>
+	</bean>
+
+	<bean id="journey" class="uk.ac.dotrural.irp.ecosystem.transport.resources.impl.JourneyResource">
+		<property name="journeyEndpoint" ref="journeyEndpoint"/>
+	</bean>
+
+	<bean id="locationDeviceObservation" class="uk.ac.dotrural.irp.ecosystem.transport.resources.impl.LocationDeviceObservationResource">
+		<property name="observationEndpoint" ref="observationEndpoint"/>
+	</bean>
+
+	<bean id="timeTable" class="uk.ac.dotrural.irp.ecosystem.transport.resources.impl.TimeTableResource">
+		<property name="timeTableEndpoint" ref="timeTableEndpoint"/>
+	</bean>
+	
+	<bean id="naptan" class="uk.ac.dotrural.irp.ecosystem.transport.resources.impl.TransportResource">
+		<property name="naptanEndpoint" ref="naptanEndpoint"/>
+	</bean>
+
+	<bean id="user" class="uk.ac.dotrural.irp.ecosystem.transport.resources.impl.UserResource">
+		<property name="userEndpoint" ref="userEndpoint"/>
+	</bean>
+	<bean id="device" class="uk.ac.dotrural.irp.ecosystem.transport.resources.impl.DeviceResource">
+		<property name="deviceEndpoint" ref="deviceEndpoint"/>
+	</bean>
+
+</beans>
