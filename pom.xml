@@ -83,6 +83,14 @@
 					<stopPort>9966</stopPort>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<warName>ecosystem-transport</warName>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
