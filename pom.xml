@@ -13,44 +13,35 @@
 			<groupId>uk.ac.dotrural.irp</groupId>
 			<artifactId>ecosystem-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>uk.me.jstott</groupId>
 			<artifactId>jcoord</artifactId>
 			<version>1.0</version>
 		</dependency>
-		<dependency>
-			<groupId>uk.ac.dotrural.irp</groupId>
-			<artifactId>ecosystem-sensor</artifactId>
-			<version>1.0-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.ws.rs</groupId>
-			<artifactId>javax.ws.rs-api</artifactId>
-			<version>2.0-m01</version>
-		</dependency>
-		<dependency>
-			<groupId>com.jcraft</groupId>
-			<artifactId>jsch</artifactId>
-			<version>0.1.48</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.dotrural.irp</groupId>
-			<artifactId>ecosystem.timetable</artifactId>
-			<version>0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4.6-rc1</version>
-		</dependency>
-	</dependencies>
-
-	<properties>
-		<jetty.version>6.1.18</jetty.version>
-	</properties>
+                
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>mail</artifactId>
+                <version>1.4.6-rc1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>jena-arq</artifactId>
+                <version>2.10.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>javax</groupId>
+                <artifactId>javaee-web-api</artifactId>
+                <version>6.0</version>
+                <type>jar</type>
+            </dependency>
+        </dependencies>
+        <properties>
+            <jetty.version>6.1.18</jetty.version>
+        </properties>
 
 	<scm>
 		<developerConnection>dcorsar</developerConnection>
@@ -79,7 +70,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		<finalName>ecosystem-transport</finalName>
 	</build>
 
 	<repositories>
@@ -106,13 +96,22 @@
 			</snapshots>
 		</repository>
 		<repository>
-			<snapshots>
+  <id>apache-repo-releases</id>
+  <url>https://repository.apache.org/content/repositories/releases/</url>
+  <releases>
+   <enabled>true</enabled>
+  </releases>
+</repository>
+<repository>
+  <id>apache-repo-snapshots</id>
+  <url>https://repository.apache.org/content/repositories/snapshots/</url>
+<releases>
 				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
 			</snapshots>
-			<id>MVNRepository</id>
-			<name>MVNRepository</name>
-			<url>http://mvnrepository.com/artifact</url>
-		</repository>
+</repository>
 	</repositories>
 
 	<distributionManagement>
