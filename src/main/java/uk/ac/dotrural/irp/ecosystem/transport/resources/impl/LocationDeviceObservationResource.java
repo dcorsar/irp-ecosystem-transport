@@ -75,10 +75,11 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 		return observationEndpoint.init(uriInfo, si);
 	}
 
-        @GET
+    @GET
 	@Path("init/mapnodes")
 	public void init(@QueryParam("endpoint") String mapNodesEndpoint) {
 		this.mapNodesEndpoint = mapNodesEndpoint;
+		System.out.println("mapnodes endpoint set to "+ this.mapNodesEndpoint);
 	}
 
 	public void update(Query query) {

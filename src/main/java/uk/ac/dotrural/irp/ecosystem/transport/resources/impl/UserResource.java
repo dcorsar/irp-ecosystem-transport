@@ -97,17 +97,15 @@ public class UserResource implements RESTFulSPARQL {
 		}
 
 		UserCreation newUser = new UserCreation();
-		String query = UserQueries.getExistsQuery(userDetails.getEmail());
-		Query sparqlQuery = new Query(query);
-		if (!userEndpoint.ask(sparqlQuery)) {
+		if (!userEmailExists(userDetails.getEmail())) {
 			String userUrl = QueryReader.getString("UserQueries.baseNS")
 					+ UUID.randomUUID().toString();
 			String token = UUID.randomUUID().toString();
-			query = UserQueries.getCreateUnactivatedUserUpdate(userUrl.trim(),
-					userDetails.getNickname().trim(), userDetails.getEmail()
-							.trim(), Util.getMD5(userDetails.getPassword()
-							.trim()), token);
-			sparqlQuery = new Query(query);
+			String query = UserQueries.getCreateUnactivatedUserUpdate(
+					userUrl.trim(), userDetails.getNickname().trim(),
+					userDetails.getEmail().trim(),
+					Util.getMD5(userDetails.getPassword().trim()), token);
+			Query sparqlQuery = new Query(query);
 			userEndpoint.update(sparqlQuery);
 			sendAuthenticationEmail(userDetails.getNickname(),
 					userDetails.getEmail(), token);
@@ -119,6 +117,12 @@ public class UserResource implements RESTFulSPARQL {
 			newUser.setReason("A user already exists for that email address");
 		}
 		return newUser;
+	}
+
+	private boolean userEmailExists(String email) {
+		String query = UserQueries.getExistsQuery(email);
+		Query sparqlQuery = new Query(query);
+		return userEndpoint.ask(sparqlQuery);
 	}
 
 	private boolean isAnEmail(String email) {
@@ -152,9 +156,18 @@ public class UserResource implements RESTFulSPARQL {
 			userEndpoint.update(sparqlQuery);
 			uc.setCreated(true);
 			uc.setReason("Account successfully validated");
-		} else {
+		} else if (isActivitated(email)) {
 			uc.setCreated(false);
-			uc.setReason("Unable to activate account or account is already activated.");
+			uc.setReason("Account is already activated.");
+		} else {
+			// has an account be registered from this email?
+			if (!userEmailExists(email)) {
+				uc.setCreated(false);
+				uc.setReason("No account has been registered for this email.");
+			} else {
+				uc.setCreated(false);
+				uc.setReason("There has been a problem activitating the account, please contact us.");
+			}
 		}
 		return uc;
 	}
@@ -323,6 +336,13 @@ public class UserResource implements RESTFulSPARQL {
 			throw new ExceptionReporter(new NullPointerException(
 					"No 'password' given."));
 
+		if (!userEmailExists(email)){
+			User u = new User(false);
+			u.setMessage("No account exists for that email address");
+			return u;
+			
+		}
+		
 		if (!isActivitated(email)) {
 			User u = new User(true);
 			u.setMessage("Account has not yet been activated");
