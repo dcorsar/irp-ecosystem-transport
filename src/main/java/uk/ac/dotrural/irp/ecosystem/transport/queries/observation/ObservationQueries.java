@@ -19,12 +19,14 @@ public class ObservationQueries {
 					QueryReader
 							.getString("ObservationQueries.locationDevice.update.create.accuracy"),
 					accuracy));
-		} else if (heading != null) {
+		}
+                if (heading != null) {
 			values.append(String.format(
 					QueryReader
 							.getString("ObservationQueries.locationDevice.update.create.heading"),
 					heading));
-		} else if (speed != null) {
+		}
+                if (speed != null) {
 			values.append(String.format(
 					QueryReader
 							.getString("ObservationQueries.locationDevice.update.create.speed"),
@@ -56,7 +58,7 @@ public class ObservationQueries {
 	public static String createMapMatchedLocationObservation(String valueUri,
 			double easting, double northing, double distanceMoved,
 			String sensorOutputUri, String observationUri, String journeyUri,
-			long resultTime, long samplingTime, String originalObservationUri) {
+			long resultTime, long samplingTime, String originalObservationUri, String nextNode) {
 
 		// determine lat long
 		LatLng latlng = new OSRef(easting, northing).toLatLng();
@@ -65,7 +67,7 @@ public class ObservationQueries {
 				.format(QueryReader
 						.getString("ObservationQueries.mapmatchedlocation.update.create"),
 						valueUri, latlng.getLat(), latlng.getLng(), easting, northing,
-						distanceMoved, sensorOutputUri, valueUri,
+						distanceMoved, nextNode, sensorOutputUri, valueUri,
 						observationUri, sensorOutputUri, journeyUri,
 						resultTime, samplingTime, resultTime, originalObservationUri
 

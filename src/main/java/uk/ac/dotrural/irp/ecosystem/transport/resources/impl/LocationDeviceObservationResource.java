@@ -53,6 +53,9 @@ import uk.me.jstott.jcoord.OSRef;
 
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
+import com.hp.hpl.jena.query.ResultSetFormatter;
+import uk.ac.dotrural.irp.ecosystem.timetable.model.OsmNode;
+import uk.ac.dotrural.irp.ecosystem.timetable.model.Segment;
 
 @Path("/observation")
 @Scope("request")
@@ -234,6 +237,10 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 				journeyUri, this.observationEndpoint.getQueryURI(),
 				mapNodesEndpoint);
 
+                System.out.println("=== SEGMENT DISTANCE ===");
+                System.out.println(sd);
+                System.out.println();
+
 		if (sd != null) {
 
 			System.out.println("map matching performed");
@@ -245,13 +252,18 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 					.getString("ObservationQueries.baseNs") + UUID.randomUUID();
 			Point mappedPoint = sd.getMappedPoint();
 
+                        // FIXME - assume segment 'to' is an OSM node.
+                        //   1. Store lng/lat in the observation value instead?
+                        //   2. Find node on line after observation point in location query?
+                        OsmNode nextNode = (OsmNode)sd.getSegment().getTo();
+
 			String query = ObservationQueries
 					.createMapMatchedLocationObservation(valueUri,
 							mappedPoint.getEasting(),
 							mappedPoint.getNorthing(), sd.getDistance(),
 							sensorOutputUri, observationUri, journeyUri,
 							System.currentTimeMillis(), startTime,
-							originalObservationUri);
+							originalObservationUri, nextNode.getId());
 
 			observationEndpoint.update(new Query(query));
 		} else {
@@ -470,6 +482,12 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 							direction, journeyUri));
 			if (l != null) {
 				busLocations.add(l);
+
+                                System.out.println("DERIVED FROM: " + l.getDerivedFrom());
+                                Observation observation = this.get(l.getDerivedFrom());
+                                System.out.println("======= OBSERVATION ======");
+                                System.out.println(observation);
+                                System.out.println();
 			} else {
 				l = executeBusLocationQuery(ObservationQueries
 						.getLatestLocationFromUser(userUri, lineUri, direction,
@@ -482,7 +500,17 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 
 		}
 
-		return new BusLocations(busLocations);
+                // a) long,lat -> map node / way
+                //    move to next node on way
+                // b) work out distance travelled
+                //    move to that node
+
+                BusLocations locations = new BusLocations(busLocations);
+                System.out.println("=========================");
+                System.out.println(">> " + locations);
+                System.out.println("=========================");
+                return locations;
+		//return new BusLocations(busLocations);
 	}
 
 	private Location executeBusLocationQuery(String query) {

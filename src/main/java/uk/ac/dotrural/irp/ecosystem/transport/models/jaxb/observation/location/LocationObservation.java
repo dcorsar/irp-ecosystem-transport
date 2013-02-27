@@ -2,7 +2,6 @@ package uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.observation.location;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
 import uk.ac.dotrural.irp.ecosystem.sensor.model.Observation;
 
 @XmlRootElement
@@ -28,4 +27,10 @@ public class LocationObservation extends Observation {
 	public void setDerivedFrom(String derivedFrom) {
 		this.derivedFrom = derivedFrom;
 	}
+
+        @Override public String toString() {
+            return super.toString() +
+                "; serverTime: " + serverTime +
+                "; derivedFrom: " + derivedFrom;
+        }
 }

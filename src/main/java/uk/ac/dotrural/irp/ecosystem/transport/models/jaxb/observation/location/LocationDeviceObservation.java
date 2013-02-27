@@ -17,5 +17,10 @@ public class LocationDeviceObservation extends LocationObservation {
 	public void setLocationValues(LocationDeviceValues locationValues) {
 		this.locationValues = locationValues;
 	}
+
+        @Override public String toString() {
+            return super.toString() +
+                "; locationValues: " + locationValues;
+        }
 	
 }

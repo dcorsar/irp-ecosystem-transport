@@ -28,4 +28,8 @@ public class BusLocations
   {
     this.locations = locations;
   }
+
+  @Override public String toString() {
+      return String.valueOf(locations); }
+  
 }

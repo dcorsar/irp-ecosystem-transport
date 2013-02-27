@@ -75,4 +75,15 @@ public class Location {
 	public void setDerivedFrom(String derivedFrom) {
 		this.derivedFrom = derivedFrom;
 	}
+
+        @Override public String toString() {
+            return "uri: " + uri +
+                "; derivedFrom: " + derivedFrom +
+                "; time: " + time +
+                "; easting: " + easting +
+                "; northing: " + northing +
+                "; longitude: " + longitude +
+                "; latitude: " + latitude;
+        }
+
 }
