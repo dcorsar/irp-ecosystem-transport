@@ -237,10 +237,6 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 				journeyUri, this.observationEndpoint.getQueryURI(),
 				mapNodesEndpoint);
 
-                System.out.println("=== SEGMENT DISTANCE ===");
-                System.out.println(sd);
-                System.out.println();
-
 		if (sd != null) {
 
 			System.out.println("map matching performed");
@@ -443,62 +439,73 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Path("getBusLocationsOn{Line}")
-	public BusLocations getBusLocationsOn(@PathParam("Line") String line,
+	public BusLocations getBusLocationsOn(
+                        @PathParam("Line") String line,
 			@DefaultValue("") @QueryParam("lineUri") String lineUri,
 			@DefaultValue("") @QueryParam("direction") String direction) {
 
-		if ("".equals(lineUri.trim())) {
-			throw new ExceptionReporter(new NullPointerException(
-					"'lineUri' is null or empty"));
-		}
-		if ("".equals(direction.trim())) {
-			throw new ExceptionReporter(new IllegalArgumentException(
-					"'direction' is null or an empty "));
-		}
+            if ("".equals(lineUri.trim()))
+                throw new ExceptionReporter(new IllegalArgumentException("'lineUri' is empty"));
+            if ("".equals(direction.trim()))
+                throw new ExceptionReporter(new IllegalArgumentException("'direction' is empty "));
 
-		long now = System.currentTimeMillis();
-		// get all the users on that line that have contributed a location in
-		// the last 1 minutes
-		String usersQuery = ObservationQueries.getUsersSubmittedSince(lineUri,
-				direction, now - 120000L);
+            try {
+                List<Location> busLocations = new ArrayList<Location>();
+                long now = System.currentTimeMillis();
 
-		// for each user, get their latest location
-		Query usersSparqlQuery = new Query(usersQuery);
-		ResultSet usersSet = observationEndpoint.query(usersSparqlQuery);
-		List<String> usersVars = usersSet.getResultVars();
+                // Fetch users with observations on lineUri in the past 1 minute.
+                String usersQuery = ObservationQueries.getUsersSubmittedSince(lineUri, direction, now - 120000L);
+                Query usersSparqlQuery = new Query(usersQuery);
 
-		// somewhere to store the bus locations
-		List<Location> busLocations = new ArrayList<Location>();
+                ResultSet usersSet = observationEndpoint.query(usersSparqlQuery);
+                List<String> usersVars = usersSet.getResultVars();
 
-		while (usersSet.hasNext()) {
-			QuerySolution solution = usersSet.next();
-			String userUri = Util.getNodeValue(solution.get(usersVars.get(0)));
-			String journeyUri = Util
-					.getNodeValue(solution.get(usersVars.get(1)));
+                while (usersSet.hasNext()) {
+                    QuerySolution solution = usersSet.next();
 
-			// get the latest map matched location from that user
-			Location l = executeBusLocationQuery(ObservationQueries
-					.getLatestMapMatchedLocationFromUser(userUri, lineUri,
-							direction, journeyUri));
-			if (l != null) {
-				busLocations.add(l);
+                    String userUri = Util.getNodeValue(solution.get(usersVars.get(0)));
+                    String journeyUri = Util.getNodeValue(solution.get(usersVars.get(1)));
 
-                                System.out.println("DERIVED FROM: " + l.getDerivedFrom());
-                                Observation observation = this.get(l.getDerivedFrom());
-                                System.out.println("======= OBSERVATION ======");
-                                System.out.println(observation);
-                                System.out.println();
-			} else {
-				l = executeBusLocationQuery(ObservationQueries
-						.getLatestLocationFromUser(userUri, lineUri, direction,
-								journeyUri));
-				System.out.println("raw obs " + (l != null));
-				if (l != null) {
-					busLocations.add(l);
-				}
-			}
+                    // Get most recent map matched location observation.
+                    Location mapMatchedLocaation = executeBusLocationQuery(userUri, lineUri, direction, journeyUri);
+                    
+                    // Get original observation value.
+                    //LocationObservation deviceObservation = fetchLatestLocationDeviceObservation(userUri, lineUri, direction, journeyUri);
+                    LocationDeviceObservationValue deviceObservationValue = (LocationDeviceObservationValue)getValueForObservation(mapMatchedLocaation.getDerivedFrom());
+                    
 
-		}
+                    System.out.println();
+                    System.out.println("===Device Observation==");
+                    System.out.println(deviceObservationValue);
+                    System.out.println();
+
+                    
+/*
+                            QuerySolution solution = usersSet.next();
+                            String userUri = Util.getNodeValue(solution.get(usersVars.get(0)));
+                            String journeyUri = Util
+                                            .getNodeValue(solution.get(usersVars.get(1)));
+
+                            // get the latest map matched location from that user
+                            Location l = executeBusLocationQuery(ObservationQueries
+                                            .getLatestMapMatchedLocationFromUser(userUri, lineUri,
+                                                            direction, journeyUri));
+
+
+                            if (l != null) {
+                                    busLocations.add(l);
+
+                            } else {
+                                    l = executeBusLocationQuery(ObservationQueries
+                                                    .getLatestLocationFromUser(userUri, lineUri, direction,
+                                                                    journeyUri));
+                                    System.out.println("raw obs " + (l != null));
+                                    if (l != null) {
+                                            busLocations.add(l);
+                                    }
+                            }*/
+
+                    }
 
                 // a) long,lat -> map node / way
                 //    move to next node on way
@@ -506,18 +513,65 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
                 //    move to that node
 
                 BusLocations locations = new BusLocations(busLocations);
-                System.out.println("=========================");
-                System.out.println(">> " + locations);
-                System.out.println("=========================");
+                //System.out.println("=========================");
+                //ystem.out.println(">> " + locations);
+                //System.out.println("=========================");
                 return locations;
-		//return new BusLocations(busLocations);
+                //return new BusLocations(busLocations);
+            } catch (Exception e) {
+                throw new ExceptionReporter(e);
+            }
 	}
 
-	private Location executeBusLocationQuery(String query) {
-		Query locationSparqlQuery = new Query(query);
+//        private Location estimateCurrentBusLocation() {
+//            return null;
+//        }
+
+//        private LocationObservation fetchLatestLocationDeviceObservation(String userUri, String lineUri, String direction, String journeyUri) {
+//            String sparql = ObservationQueries.getLatestUserLocationObservation(userUri, lineUri, direction, journeyUri);
+//            ResultSet rs = observationEndpoint.query(new Query(sparql));
+//
+//            if (rs.hasNext()) {
+//                QuerySolution qs = rs.next();
+//
+//                LocationDeviceObservationValue value = new LocationDeviceObservationValue();
+//                value.setUri(Util.getNodeValue(qs.get("value")));
+//                value.setLatitude(Util.getNodeDoubleValue(qs.get("latitude")));
+//                value.setLongitude(Util.getNodeDoubleValue(qs.get("longitude")));
+//                value.setEasting(Util.getNodeDoubleValue(qs.get("easting")));
+//                value.setNorthing(Util.getNodeDoubleValue(qs.get("northing")));
+//                value.setDistanceMoved(Util.getNodeDoubleValue(qs.get("distanceMoved")));
+//                value.setAccuracy(Util.getNodeDoubleValue(qs.get("accuracy")));
+//                value.setHeading(Util.getNodeDoubleValue(qs.get("heading")));
+//                value.setSpeed(Util.getNodeDoubleValue(qs.get("speed")));
+//                //value.setNextNode(Util.getNodeDoubleValue(qs.get("NextNode")));
+//
+//                SensorOutput sensorOutput = new SensorOutput();
+//                sensorOutput.setHasValue(value);
+//
+//                LocationObservation observation = new LocationObservation();
+//                observation.setObservationResult(sensorOutput);
+//                observation.setFeatureOfInterest(new FeatureOfInterest(journeyUri));
+//                observation.setUri(Util.getNodeValue(qs.get("obs")));
+//                observation.setObservationResultTime(Util.getNodeLongValue(qs.get("resultTime")));
+//                observation.setObservationSamplingTime(Util.getNodeLongValue(qs.get("samplingTime")));
+//                observation.setServerTime(Util.getNodeLongValue(qs.get("serverTime")));
+//                observation.setDerivedFrom(Util.getNodeValue(qs.get("derivedFrom")));
+//
+//                return observation;
+//            }
+//
+//            //throw new Exception("Location observation not found for: user = <" + userUri + ">; line = <" + lineUri + ">; " +
+//            //        "direction = " + direction + "; journey = <" + journeyUri + ">");
+//            return null;
+//        }
+
+	private Location executeBusLocationQuery(String userUri, String lineUri, String direction, String journeyUri) {
+		String sparql = ObservationQueries.getLatestMapMatchedFromUser(userUri, lineUri, direction, journeyUri);
+                Query query = new Query(sparql);
 
 		ResultSet busLocationsOnRoute = observationEndpoint
-				.query(locationSparqlQuery);
+				.query(query);
 		List<String> locationVars = busLocationsOnRoute.getResultVars();
 		Location location = null;
 		if (busLocationsOnRoute.hasNext()) {
@@ -540,7 +594,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 				location.setDerivedFrom(Util.getNodeValue(
 						locationSolution.get(locationVars.get(6))).trim());
 		} else {
-			System.out.println("  No match for bus location query " + query);
+			System.out.println("  No match for bus location query " + sparql);
 		}
 		return location;
 	}

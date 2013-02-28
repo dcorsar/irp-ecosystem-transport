@@ -167,13 +167,22 @@ public class ObservationQueries {
 						lineUri, direction, time);
 	}
 
-	public static String getLatestMapMatchedLocationFromUser(String userUri,
+//	public static String getLatestMapMatchedLocationFromUser(String userUri,
+//			String lineUri, String direction, String foi) {
+//		return String
+//				.format(QueryReader
+//						.getString("ObservationQueries.locationDevice.get.line.userLatestMapMatched"),foi,foi,
+//						lineUri, direction, userUri);
+//	}
+
+        public static String getLatestMapMatchedFromUser(String userUri,
 			String lineUri, String direction, String foi) {
 		return String
 				.format(QueryReader
-						.getString("ObservationQueries.locationDevice.get.line.userLatestMappedMatched"),foi,foi,
+						.getString("ObservationQueries.locationDevice.get.line.userLatestMapMatched"),foi,foi,
 						lineUri, direction, userUri);
 	}
+
 	public static String getLatestLocationFromUser(String userUri,
 			String lineUri, String direction, String foi) {
 		return String

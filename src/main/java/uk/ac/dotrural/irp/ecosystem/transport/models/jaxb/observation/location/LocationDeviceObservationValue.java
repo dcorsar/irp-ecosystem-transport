@@ -47,6 +47,12 @@ public class LocationDeviceObservationValue extends LocationObservationValue {
 		this.distanceMoved = distanceMoved;
 	}
 
-	
+	@Override public String toString() {
+            return super.toString() +
+                    "; accuracy: " + accuracy +
+                    "; heading: " + heading +
+                    "; speed: " + speed +
+                    "; distanceMoved: " + distanceMoved;
+        }
 	
 }
