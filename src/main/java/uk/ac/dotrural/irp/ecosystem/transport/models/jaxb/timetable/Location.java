@@ -2,6 +2,7 @@ package uk.ac.dotrural.irp.ecosystem.transport.models.jaxb.timetable;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import uk.ac.dotrural.irp.ecosystem.timetable.model.Point;
 
 @XmlRootElement
 public class Location {
@@ -75,6 +76,8 @@ public class Location {
 	public void setDerivedFrom(String derivedFrom) {
 		this.derivedFrom = derivedFrom;
 	}
+
+        public Point asPoint() { return new Point(easting, northing); }
 
         @Override public String toString() {
             return "uri: " + uri +

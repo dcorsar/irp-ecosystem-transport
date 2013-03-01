@@ -58,7 +58,7 @@ public class ObservationQueries {
 	public static String createMapMatchedLocationObservation(String valueUri,
 			double easting, double northing, double distanceMoved,
 			String sensorOutputUri, String observationUri, String journeyUri,
-			long resultTime, long samplingTime, String originalObservationUri, String nextNode) {
+			long resultTime, long samplingTime, String originalObservationUri) {
 
 		// determine lat long
 		LatLng latlng = new OSRef(easting, northing).toLatLng();
@@ -67,7 +67,7 @@ public class ObservationQueries {
 				.format(QueryReader
 						.getString("ObservationQueries.mapmatchedlocation.update.create"),
 						valueUri, latlng.getLat(), latlng.getLng(), easting, northing,
-						distanceMoved, nextNode, sensorOutputUri, valueUri,
+						distanceMoved, sensorOutputUri, valueUri,
 						observationUri, sensorOutputUri, journeyUri,
 						resultTime, samplingTime, resultTime, originalObservationUri
 
