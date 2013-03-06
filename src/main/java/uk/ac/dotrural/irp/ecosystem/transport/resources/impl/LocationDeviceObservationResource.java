@@ -54,6 +54,8 @@ import uk.me.jstott.jcoord.OSRef;
 import com.hp.hpl.jena.query.QuerySolution;
 import com.hp.hpl.jena.query.ResultSet;
 import com.hp.hpl.jena.query.ResultSetFormatter;
+import com.hp.hpl.jena.sparql.util.Symbol;
+import java.util.Collection;
 import uk.ac.dotrural.irp.ecosystem.timetable.VehicleLocationEstimator;
 import uk.ac.dotrural.irp.ecosystem.timetable.model.EstimatedLocationPoint;
 import uk.ac.dotrural.irp.ecosystem.timetable.model.OsmNode;
@@ -446,7 +448,6 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
             if ("".equals(direction.trim()))
                 throw new ExceptionReporter(new IllegalArgumentException("'direction' is empty "));
 
-            ServiceMapMatcher matcher = new ServiceMapMatcher();
             VehicleLocationEstimator locationEstimator = new VehicleLocationEstimator();
 
             List<Location> busLocations = new ArrayList<Location>();
@@ -472,29 +473,30 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
                 // Get original device observation value.
                 LocationDeviceObservationValue deviceObservationValue = (LocationDeviceObservationValue)getValueForObservation(mapMatchedLocation.getDerivedFrom());
 
-                // Get next node.
-                SegmentDistance sd = matcher.mapToRouteFromJourney(locationPoint, 500, journeyUri,
-                        this.observationEndpoint.getQueryURI(), mapNodesEndpoint);
+                // ----
+                // FIXME Use matcher for now since it performs the correct queries.
+                //  (It's already map matched, we just need to retrieve all segments from this locationPoint onwards in the journey.)
+                ServiceMapMatcher matcher = new ServiceMapMatcher();
+
+                // Get current segment.
+                SegmentDistance sd = matcher.mapToRouteFromJourney(locationPoint, 500, journeyUri, this.observationEndpoint.getQueryURI(), mapNodesEndpoint);
+                Segment currentSegment = sd.getSegment();
+
+                List<Segment> journeySegments = matcher.getSegmentsWithinFromJourney(locationPoint, 500, journeyUri, this.observationEndpoint.getQueryURI(), mapNodesEndpoint);                // ----
 
                 // Estimate new location.
                 long locationTime = Long.parseLong(mapMatchedLocation.getTime()); // FIXME is this guaranteed to be a long value?
-                EstimatedLocationPoint estimatedLocation = locationEstimator.estimateLocationAtTime(locationPoint, deviceObservationValue.getSpeed(), locationTime, System.currentTimeMillis());
+                EstimatedLocationPoint estimatedLocation = locationEstimator.estimateLocationAtTime(locationPoint, currentSegment, journeySegments, deviceObservationValue.getSpeed(), locationTime, System.currentTimeMillis());
 
+                System.out.println();System.out.println();
+                System.out.println("locationPoint: " + locationPoint);
+                System.out.println("estimatedLocation: " + estimatedLocation);
+                System.out.println();System.out.println();
 
-
-
-
-                System.out.println();
-                System.out.println("===Device Observation==");
-                System.out.println(deviceObservationValue);
-                System.out.println();
-
-                System.out.println();
-                System.out.println("===LOCATION POINT SD==");
-                System.out.println("Original location: " + mapMatchedLocation);
-                System.out.println();
-                System.out.println(sd);
-                System.out.println();
+//                System.out.println();
+//                System.out.println("===Device Observation==");
+//                System.out.println(deviceObservationValue);
+//                System.out.println();
 
 /*
                         QuerySolution solution = usersSet.next();
@@ -536,50 +538,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
             //return new BusLocations(busLocations);
 	}
 
-//        private Location estimateCurrentBusLocation() {
-//            return null;
-//        }
-
-//        private LocationObservation fetchLatestLocationDeviceObservation(String userUri, String lineUri, String direction, String journeyUri) {
-//            String sparql = ObservationQueries.getLatestUserLocationObservation(userUri, lineUri, direction, journeyUri);
-//            ResultSet rs = observationEndpoint.query(new Query(sparql));
-//
-//            if (rs.hasNext()) {
-//                QuerySolution qs = rs.next();
-//
-//                LocationDeviceObservationValue value = new LocationDeviceObservationValue();
-//                value.setUri(Util.getNodeValue(qs.get("value")));
-//                value.setLatitude(Util.getNodeDoubleValue(qs.get("latitude")));
-//                value.setLongitude(Util.getNodeDoubleValue(qs.get("longitude")));
-//                value.setEasting(Util.getNodeDoubleValue(qs.get("easting")));
-//                value.setNorthing(Util.getNodeDoubleValue(qs.get("northing")));
-//                value.setDistanceMoved(Util.getNodeDoubleValue(qs.get("distanceMoved")));
-//                value.setAccuracy(Util.getNodeDoubleValue(qs.get("accuracy")));
-//                value.setHeading(Util.getNodeDoubleValue(qs.get("heading")));
-//                value.setSpeed(Util.getNodeDoubleValue(qs.get("speed")));
-//                //value.setNextNode(Util.getNodeDoubleValue(qs.get("NextNode")));
-//
-//                SensorOutput sensorOutput = new SensorOutput();
-//                sensorOutput.setHasValue(value);
-//
-//                LocationObservation observation = new LocationObservation();
-//                observation.setObservationResult(sensorOutput);
-//                observation.setFeatureOfInterest(new FeatureOfInterest(journeyUri));
-//                observation.setUri(Util.getNodeValue(qs.get("obs")));
-//                observation.setObservationResultTime(Util.getNodeLongValue(qs.get("resultTime")));
-//                observation.setObservationSamplingTime(Util.getNodeLongValue(qs.get("samplingTime")));
-//                observation.setServerTime(Util.getNodeLongValue(qs.get("serverTime")));
-//                observation.setDerivedFrom(Util.getNodeValue(qs.get("derivedFrom")));
-//
-//                return observation;
-//            }
-//
-//            //throw new Exception("Location observation not found for: user = <" + userUri + ">; line = <" + lineUri + ">; " +
-//            //        "direction = " + direction + "; journey = <" + journeyUri + ">");
-//            return null;
-//        }
-
-	private Location executeBusLocationQuery(String userUri, String lineUri, String direction, String journeyUri) {
+        private Location executeBusLocationQuery(String userUri, String lineUri, String direction, String journeyUri) {
 		String sparql = ObservationQueries.getLatestMapMatchedFromUser(userUri, lineUri, direction, journeyUri);
                 Query query = new Query(sparql);
 
