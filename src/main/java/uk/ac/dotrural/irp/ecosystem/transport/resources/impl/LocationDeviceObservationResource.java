@@ -460,6 +460,13 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
             ResultSet usersSet = observationEndpoint.query(usersSparqlQuery);
             List<String> usersVars = usersSet.getResultVars();
 
+            // Notes:
+            //  - Should estimateLocationAtTime be in ecosystem-transport instead of timetable
+            //    (i.e., separate from the timetable generation)?
+            //  - Should above derive a new observation ("estimated location observation"?) and store before returning?
+            //    Saves estimating the location multiple times per user, and maybe this is another /type/ of observation.
+            //  - TODO fix mapmatcher abuse below
+
             while (usersSet.hasNext()) {
                 QuerySolution solution = usersSet.next();
 
@@ -468,75 +475,65 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 
                 // Get most recent map matched location observation.
                 Location mapMatchedLocation = executeBusLocationQuery(userUri, lineUri, direction, journeyUri);
-                Point locationPoint = mapMatchedLocation.asPoint();
 
-                // Get original device observation value.
-                LocationDeviceObservationValue deviceObservationValue = (LocationDeviceObservationValue)getValueForObservation(mapMatchedLocation.getDerivedFrom());
+                if (mapMatchedLocation != null) { // Estimate location.
+                    Point locationPoint = mapMatchedLocation.asPoint();
 
-                // ----
-                // FIXME Use matcher for now since it performs the correct queries.
-                //  (It's already map matched, we just need to retrieve all segments from this locationPoint onwards in the journey.)
-                ServiceMapMatcher matcher = new ServiceMapMatcher();
+                    // Get original device observation value.
+                    LocationDeviceObservationValue deviceObservationValue = (LocationDeviceObservationValue)getValueForObservation(mapMatchedLocation.getDerivedFrom());
 
-                // Get current segment.
-                SegmentDistance sd = matcher.mapToRouteFromJourney(locationPoint, 500, journeyUri, this.observationEndpoint.getQueryURI(), mapNodesEndpoint);
-                Segment currentSegment = sd.getSegment();
+                    // ----
+                    // FIXME - map matcher abuse - use matcher for now since it performs the correct queries.
+                    //  (It's already map matched, we just need to retrieve all segments from this locationPoint onwards in the journey.)
+                    ServiceMapMatcher matcher = new ServiceMapMatcher();
 
-                List<Segment> journeySegments = matcher.getSegmentsWithinFromJourney(locationPoint, 500, journeyUri, this.observationEndpoint.getQueryURI(), mapNodesEndpoint);                // ----
+                    // Get current segment.
+                    SegmentDistance sd = matcher.mapToRouteFromJourney(locationPoint, 500, journeyUri, this.observationEndpoint.getQueryURI(), mapNodesEndpoint);
+                    Segment currentSegment = sd.getSegment();
 
-                // Estimate new location.
-                long locationTime = Long.parseLong(mapMatchedLocation.getTime()); // FIXME is this guaranteed to be a long value?
-                EstimatedLocationPoint estimatedLocation = locationEstimator.estimateLocationAtTime(locationPoint, currentSegment, journeySegments, deviceObservationValue.getSpeed(), locationTime, System.currentTimeMillis());
+                    List<Segment> journeySegments = matcher.getSegmentsWithinFromJourney(locationPoint, 500, journeyUri, this.observationEndpoint.getQueryURI(), mapNodesEndpoint);
+                    // ----
 
-                System.out.println();System.out.println();
-                System.out.println("locationPoint: " + locationPoint);
-                System.out.println("estimatedLocation: " + estimatedLocation);
-                System.out.println();System.out.println();
+                    // Estimate new location.
+                    long locationTime = Long.parseLong(mapMatchedLocation.getTime()); // FIXME is this guaranteed to be a long value?
+                    EstimatedLocationPoint estimatedLocationPoint = locationEstimator.estimateLocationAtTime(locationPoint, currentSegment, journeySegments, deviceObservationValue.getSpeed(), locationTime, System.currentTimeMillis());
 
-//                System.out.println();
-//                System.out.println("===Device Observation==");
-//                System.out.println(deviceObservationValue);
-//                System.out.println();
+                    Location l = createLocation(estimatedLocationPoint, mapMatchedLocation.getUri());
 
-/*
-                        QuerySolution solution = usersSet.next();
-                        String userUri = Util.getNodeValue(solution.get(usersVars.get(0)));
-                        String journeyUri = Util
-                                        .getNodeValue(solution.get(usersVars.get(1)));
+                    System.out.println();System.out.println();
+                    System.out.println("\t mapMatchedLocation: " + mapMatchedLocation);
+                    System.out.println("\t estimatedLocation:  " + l);
+                    System.out.println();System.out.println();
 
-                        // get the latest map matched location from that user
-                        Location l = executeBusLocationQuery(ObservationQueries
-                                        .getLatestMapMatchedLocationFromUser(userUri, lineUri,
-                                                        direction, journeyUri));
-
-
-                        if (l != null) {
-                                busLocations.add(l);
-
-                        } else {
-                                l = executeBusLocationQuery(ObservationQueries
-                                                .getLatestLocationFromUser(userUri, lineUri, direction,
-                                                                journeyUri));
-                                System.out.println("raw obs " + (l != null));
-                                if (l != null) {
-                                        busLocations.add(l);
-                                }
-                        }*/
-
+                    busLocations.add(l);
+                } else { // Use raw observation.
+                    Location l = executeBusLocationQuery(userUri, lineUri, direction, journeyUri);
+                    System.out.println("raw obs " + (l != null));
+                    if (l != null) {
+                      busLocations.add(l);
+                    }
                 }
 
-            // a) long,lat -> map node / way
-            //    move to next node on way
-            // b) work out distance travelled
-            //    move to that node
+            }
 
-            BusLocations locations = new BusLocations(busLocations);
-            //System.out.println("=========================");
-            //ystem.out.println(">> " + locations);
-            //System.out.println("=========================");
-            return locations;
-            //return new BusLocations(busLocations);
+            return new BusLocations(busLocations);
 	}
+        
+        private static Location createLocation(EstimatedLocationPoint p, String derivedFrom) {
+            OSRef ref = new OSRef(p.getPoint().getEasting(), p.getPoint().getNorthing());
+            LatLng ll = ref.toLatLng();
+
+            Location l = new Location();
+            l.setUri(QueryReader.getString("ObservationQueries.baseNs") + UUID.randomUUID());
+            l.setDerivedFrom(derivedFrom);
+            l.setTime(p.getTime());
+            l.setEasting(p.getPoint().getEasting());
+            l.setNorthing(p.getPoint().getNorthing());
+            l.setLongitude(ll.getLng());
+            l.setLatitude(ll.getLat());
+
+            return l;
+        }
 
         private Location executeBusLocationQuery(String userUri, String lineUri, String direction, String journeyUri) {
 		String sparql = ObservationQueries.getLatestMapMatchedFromUser(userUri, lineUri, direction, journeyUri);
@@ -550,18 +547,18 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 			QuerySolution locationSolution = busLocationsOnRoute.next();
 
 			location = new Location();
-			location.setTime(Util.getNodeValue(locationSolution.get(locationVars.get(0)))
+			location.setTime(Util.getNodeValue(locationSolution.get("serverTime"))
 					.trim());
 			location.setEasting(Double.parseDouble(Util.getNodeValue(
-					locationSolution.get(locationVars.get(1))).trim()));
+					locationSolution.get("easting")).trim()));
 			location.setNorthing(Double.parseDouble(Util.getNodeValue(
-					locationSolution.get(locationVars.get(2))).trim()));
+					locationSolution.get("northing")).trim()));
 			location.setLongitude(Double.parseDouble(Util.getNodeValue(
-					locationSolution.get(locationVars.get(3))).trim()));
+					locationSolution.get("longitude")).trim()));
 			location.setLatitude(Double.parseDouble(Util.getNodeValue(
-					locationSolution.get(locationVars.get(4))).trim()));
+					locationSolution.get("latitude")).trim()));
 			location.setUri(Util.getNodeValue(
-					locationSolution.get(locationVars.get(5))).trim());
+					locationSolution.get("obs")).trim());
 			if (locationVars.size() == 7)
 				location.setDerivedFrom(Util.getNodeValue(
 						locationSolution.get(locationVars.get(6))).trim());

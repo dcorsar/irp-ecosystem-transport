@@ -32,6 +32,10 @@ public class Location {
 		this.time = time;
 	}
 
+        public void setTime(Long time) {
+            this.time = String.valueOf(time);
+        }
+
 	@XmlElement(name = "easting")
 	public double getEasting() {
 		return easting;
