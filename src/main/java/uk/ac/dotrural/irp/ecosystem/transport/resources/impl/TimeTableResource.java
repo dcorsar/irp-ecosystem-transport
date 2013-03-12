@@ -214,9 +214,9 @@ public class TimeTableResource implements RESTFulSPARQL {
 					solution.get(vars.get(3))).trim()));
 			location.setNorthing(Double.parseDouble(Util.getNodeValue(
 					solution.get(vars.get(4))).trim()));
-			location.setLongitude(Double.parseDouble(Util.getNodeValue(
-					solution.get(vars.get(5))).trim()));
 			location.setLatitude(Double.parseDouble(Util.getNodeValue(
+					solution.get(vars.get(5))).trim()));
+			location.setLongitude(Double.parseDouble(Util.getNodeValue(
 					solution.get(vars.get(6))).trim()));
 
 			busLocations.add(location);

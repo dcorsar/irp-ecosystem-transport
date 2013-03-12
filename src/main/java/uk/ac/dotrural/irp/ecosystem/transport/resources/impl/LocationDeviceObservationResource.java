@@ -516,6 +516,7 @@ public class LocationDeviceObservationResource implements RESTFulSPARQL {
 
             }
 
+            System.out.println("\tBUS LOCATIONS: " + new BusLocations(busLocations));
             return new BusLocations(busLocations);
 	}
         
